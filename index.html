@@ -1,0 +1,1349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#2A3036">
+<link rel="icon" href="data:,">
+<title>Bush Pilot Alaska — browser prototype</title>
+<style>
+:root{--sky:#A8B8C4;--sky2:#7A8FA0;--accent:#6A8FA8;--panel:#2A3036;--text:#E6E2D8;--caution:#C4A35A;--neg:#A65D4E;--sage:#6B7A5C;--sage2:#8A9A72;--slate:#7A7E82;--paper:#E8E3D4;--ink:#2A3036;--muted:#A9ADA8}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#2A3036;color:var(--text);font-family:"Gill Sans","Gill Sans MT","Segoe UI","Trebuchet MS",Ubuntu,Roboto,system-ui,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+button{font:inherit;color:inherit;cursor:pointer}
+.screen{position:fixed;inset:0;overflow-y:auto;display:none;background:linear-gradient(180deg,rgba(42,48,54,.35),rgba(42,48,54,.82) 40%,rgba(42,48,54,.92));touch-action:pan-y;-webkit-overflow-scrolling:touch}
+.screen.on{display:block}
+.col{max-width:560px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom))}
+.panel{background:rgba(42,48,54,.9);border-radius:10px;padding:14px 16px;border:1px solid rgba(230,226,216,.09);margin:10px 0}
+h1{font-weight:600;font-size:26px;margin:4px 0 2px;letter-spacing:.2px}
+h2{font-weight:600;font-size:19px;margin:0 0 6px}
+h3{font-weight:600;font-size:15px;margin:12px 0 6px;color:var(--muted)}
+p{line-height:1.45;margin:6px 0}
+.sub{color:var(--muted);font-size:14px}
+.row{display:flex;gap:10px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.sp{flex:1}
+.btn{background:rgba(230,226,216,.08);border:1px solid rgba(230,226,216,.22);border-radius:8px;padding:11px 16px;font-size:16px;min-height:46px}
+.btn:hover{border-color:rgba(230,226,216,.45)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#F4F1EA;font-weight:600}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn[disabled]{opacity:.4;cursor:not-allowed;filter:none}
+.btn.sm{padding:6px 11px;min-height:34px;font-size:14px}
+.tabs{display:flex;gap:6px;margin:10px 0 4px}
+.tab{flex:1;background:transparent;border:1px solid rgba(230,226,216,.2);border-radius:8px;padding:9px;font-size:15px}
+.tab.on{border-color:var(--accent);background:rgba(106,143,168,.22)}
+.cash{font-variant-numeric:tabular-nums;font-weight:600}
+.clip{position:relative;background:#5b544a;border-radius:10px;padding:22px 10px 8px;margin-top:14px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.clip:before{content:"";position:absolute;left:50%;top:-8px;transform:translateX(-50%);width:110px;height:22px;border-radius:6px;background:linear-gradient(#a7acaf,#7d8387);box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.card{background:var(--paper);color:#2A3036;border-radius:3px;padding:12px 13px 11px;margin:0 0 10px;box-shadow:0 2px 0 rgba(0,0,0,.28);border-left:6px solid #cfc8b5;cursor:pointer;position:relative;background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.018) 0 1px,transparent 1px 4px)}
+.card:hover,.card:focus{border-left-color:var(--accent);outline:none}
+.card .t{font-weight:700;font-size:17px}
+.card .meta{font-size:14px;color:#4d5458;margin-top:3px}
+.card .soft{font-size:12.5px;color:#5b6266;font-style:italic;margin-top:7px;line-height:1.35}
+.card .pay{font-weight:700;font-size:17px;white-space:nowrap}
+.ico{width:46px;height:34px;flex:none;display:block}
+.tag{display:inline-block;font-size:12px;padding:2px 7px;border-radius:10px;background:#d5cfbf;color:#3c4246;margin-right:4px;vertical-align:1px}
+.tag.hero{background:var(--accent);color:#F4F1EA}
+.tag.done{background:#6B7A5C;color:#F4F1EA}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:13px;padding:2px 8px 2px 4px;border-radius:12px;background:#2A3036;color:#E6E2D8;vertical-align:1px}
+.chip svg{width:18px;height:18px}
+label.sl{display:block;margin:12px 0 2px;font-size:15px}
+label.sl b{float:right;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent);height:30px}
+.bar{height:12px;border-radius:6px;background:rgba(230,226,216,.12);position:relative;overflow:hidden;margin-top:5px}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:6px}
+.bar i.warn{background:var(--caution)}
+.bar i.bad{background:var(--neg)}
+.bar .mk{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--text)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:14px;margin-top:10px}
+.stats div span{color:var(--muted)}
+.ok{color:#9DB08A}.warn{color:var(--caution)}.bad{color:#C98475}
+.softline{font-style:italic;color:#CFCAC0;border-left:3px solid var(--accent);padding:6px 10px;margin:10px 0;font-size:14px;background:rgba(106,143,168,.08)}
+.tip{border-left:3px solid var(--caution);padding:8px 11px;background:rgba(196,163,90,.09);margin:10px 0}
+.kv{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed rgba(230,226,216,.12);font-variant-numeric:tabular-nums}
+.big{font-size:30px;font-weight:600;margin:6px 0 2px}
+.radio{font-style:italic;color:#CFCAC0}
+#toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top));transform:translateX(-50%);background:rgba(42,48,54,.95);border:1px solid var(--accent);padding:9px 14px;border-radius:8px;font-size:14px;display:none;z-index:50;max-width:92vw;text-align:center}
+/* HUD */
+#hud{position:fixed;inset:0;pointer-events:none;display:none;font-variant-numeric:tabular-nums}
+#hud.on{display:block}
+.hp{position:absolute;background:rgba(42,48,54,.82);border-radius:8px;padding:7px 10px;font-size:13px;line-height:1.25}
+#hl{left:calc(8px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));min-width:118px}
+#hr{right:calc(8px + env(safe-area-inset-right));top:calc(8px + env(safe-area-inset-top));min-width:150px}
+.hv{font-size:21px;font-weight:600}
+.hl{color:var(--muted);font-size:11.5px}
+#hc{left:50%;transform:translateX(-50%);top:calc(8px + env(safe-area-inset-top));text-align:center;max-width:46vw;min-width:200px}
+#radio{font-style:italic;color:#D8D3C8;font-size:13px;margin-top:3px;transition:opacity .6s}
+#warn{position:absolute;left:50%;top:30%;transform:translateX(-50%);font-size:20px;font-weight:600;color:#2A3036;background:var(--caution);padding:6px 14px;border-radius:8px;display:none;text-align:center}
+#grade{position:absolute;left:50%;top:22%;transform:translateX(-50%);font-size:26px;font-weight:600;color:var(--text);text-shadow:0 2px 6px rgba(0,0,0,.55);display:none;text-align:center}
+#hint{position:absolute;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);font-size:13px;color:#E6E2D8;background:rgba(42,48,54,.75);padding:5px 10px;border-radius:6px;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
+#wxi{display:inline-flex;align-items:center;gap:5px}
+#wxi svg{width:20px;height:20px}
+.mini{height:7px;border-radius:4px;background:rgba(230,226,216,.13);position:relative;overflow:hidden;margin:2px 0 4px;width:100%}
+.mini i{position:absolute;left:0;top:0;bottom:0;background:var(--accent)}
+.mini .mk{position:absolute;top:-1px;bottom:-1px;width:2px;background:var(--text)}
+#pauseBtn{pointer-events:auto;background:rgba(230,226,216,.08);border:1px solid rgba(230,226,216,.25);border-radius:6px;padding:4px 10px;font-size:12.5px;margin-top:6px;width:100%}
+/* touch */
+#touch{position:fixed;inset:0;pointer-events:none;display:none}
+#touch.on{display:block}
+#stick{position:absolute;left:calc(18px + env(safe-area-inset-left));bottom:calc(18px + env(safe-area-inset-bottom));width:150px;height:150px;border-radius:50%;background:rgba(42,48,54,.45);border:2px solid rgba(230,226,216,.3);pointer-events:auto;touch-action:none}
+#knob{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px 0 0 -31px;border-radius:50%;background:rgba(106,143,168,.85);border:2px solid rgba(230,226,216,.6)}
+#stick .lbl{position:absolute;width:100%;text-align:center;font-size:11px;color:rgba(230,226,216,.7)}
+#thrWrap{position:absolute;right:calc(18px + env(safe-area-inset-right));bottom:calc(18px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:flex-end;pointer-events:none}
+#thr{width:62px;height:180px;border-radius:12px;background:rgba(42,48,54,.5);border:2px solid rgba(230,226,216,.3);position:relative;pointer-events:auto;touch-action:none}
+#thrFill{position:absolute;left:4px;right:4px;bottom:4px;border-radius:8px;background:rgba(106,143,168,.55)}
+#thrHandle{position:absolute;left:-4px;right:-4px;height:22px;margin-bottom:-11px;border-radius:8px;background:#E6E2D8;opacity:.9}
+#thr .lbl{position:absolute;top:-18px;width:100%;text-align:center;font-size:11px;color:rgba(230,226,216,.75)}
+.tbtns{display:flex;flex-direction:column;gap:10px}
+.tb{pointer-events:auto;touch-action:none;width:74px;height:54px;border-radius:12px;background:rgba(42,48,54,.6);border:2px solid rgba(230,226,216,.3);font-size:14px;color:var(--text)}
+.tb.on{background:rgba(106,143,168,.75);border-color:#E6E2D8}
+#rotate{position:fixed;left:50%;transform:translateX(-50%);top:40%;max-width:calc(100vw - 20px);text-align:center;font-size:13px;color:var(--text);background:rgba(42,48,54,.82);padding:6px 12px;border-radius:8px;display:none;pointer-events:none}
+#hCloud{display:none;margin-top:3px;color:var(--caution)}
+/* BPA-03: narrow (portrait phone) HUD: left/right panels side by side, centre panel below them (top set in layoutHUD) */
+@media (max-width:600px){#hl,#hr{min-width:0;max-width:calc(50vw - 12px)}#hl{width:calc(50vw - 12px)}#hr{width:calc(50vw - 12px)}#hc{left:calc(8px + env(safe-area-inset-left));right:calc(8px + env(safe-area-inset-right));transform:none;max-width:none;min-width:0}#hint{white-space:normal;text-align:center;width:max-content}#warn,#grade{max-width:calc(100vw - 20px)}}
+/* BPA-03: short landscape phones: slightly smaller throttle so it clears the right HUD panel */
+@media (max-height:420px){#thr{height:150px}.tb{height:48px}}
+/* hangar */
+.shelf{background:linear-gradient(#6b5a48,#57493b);border-radius:6px;padding:16px 14px 10px;margin-top:10px;box-shadow:inset 0 -6px 0 #43382d}
+.plaque{width:150px;margin:0 auto;padding:12px 10px;border-radius:6px;text-align:center;background:linear-gradient(#7c5b3c,#5e432c);color:#efe3c6;border:3px solid #a68a52;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.plaque .pt{font-weight:700;font-size:15px}
+.plaque .pf{font-size:12px;font-style:italic;margin-top:4px;color:#e2d6b8}
+.slot{width:150px;margin:0 auto;padding:22px 10px;border:2px dashed rgba(239,227,198,.45);border-radius:6px;text-align:center;font-size:12.5px;color:#efe3c6}
+.hgsvg{width:100%;height:auto;display:block;border-radius:8px}
+.legend{font-size:13px;color:var(--muted);line-height:1.6}
+.legend kbd{display:inline-block;min-width:22px;padding:0 5px;border:1px solid rgba(230,226,216,.3);border-bottom-width:2px;border-radius:4px;font-family:inherit;font-size:12px;text-align:center;color:var(--text)}
+.toggle{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:15px}
+.toggle input{width:20px;height:20px;accent-color:var(--accent)}
+#pause{background:rgba(42,48,54,.7)}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div id="hud">
+  <div class="hp" id="hl">
+    <div class="hl">Airspeed</div><div class="hv" id="hSpd">0 kts</div>
+    <div class="mini"><i id="hSpdBar"></i><span class="mk" id="hStallMk"></span></div>
+    <div class="hl">Altitude (above ground)</div><div class="hv" id="hAlt">0 ft</div>
+    <div class="hl" id="hVs">VS 0 fpm</div>
+    <div class="hl" id="hCfg" style="margin-top:3px">Flaps up · Throttle 0%</div>
+  </div>
+  <div class="hp" id="hc">
+    <div id="hDest">Devil's Elbow Bar · 6.2 km</div>
+    <div id="radio"></div>
+  </div>
+  <div class="hp" id="hr">
+    <div class="row"><span class="hl">Fuel</span><span class="sp"></span><span id="hFuel">60 L</span></div>
+    <div class="mini"><i id="hFuelBar"></i></div>
+    <div class="row"><span class="hl">Weight</span><span class="sp"></span><span id="hWt">900 kg</span></div>
+    <div class="mini"><i id="hWtBar"></i><span class="mk" style="left:100%;margin-left:-2px"></span></div>
+    <div class="row" style="margin-top:3px"><span id="wxi"></span><span class="sp"></span><span id="hTimer"></span></div>
+    <div class="hl" id="hCloud"></div>
+    <button id="pauseBtn" aria-label="Pause">II Pause (P)</button>
+  </div>
+  <div id="warn">Stall — lower the nose, add power</div>
+  <div id="grade"></div>
+  <div id="hint"></div>
+</div>
+
+<div id="touch">
+  <div id="stick"><span class="lbl" style="top:6px">nose up</span><span class="lbl" style="bottom:6px">nose down</span><div id="knob"></div></div>
+  <div id="thrWrap">
+    <div class="tbtns"><button class="tb" id="tbFlaps">Flaps</button><button class="tb" id="tbBrake">Brake</button></div>
+    <div id="thr"><span class="lbl">Throttle</span><div id="thrFill"></div><div id="thrHandle"></div></div>
+  </div>
+</div>
+<div id="rotate">Turn your phone sideways for the best view of the approach.</div>
+
+<!-- Willow Station: job board + hangar -->
+<div class="screen" id="scrBoard">
+  <div class="col">
+    <div class="row"><div><div class="sub">Willow Station · Northwind 185</div><h1>Job board</h1></div><span class="sp"></span><div style="text-align:right"><div class="sub">Cash</div><div class="cash big" id="bCash" style="font-size:24px">$0</div></div></div>
+    <div class="tabs"><button class="tab on" id="tabJobs">Jobs</button><button class="tab" id="tabHangar">Hangar</button></div>
+    <div class="clip"><div id="jobList"></div></div>
+    <div class="panel legend" id="kbLegend">
+      <b style="color:var(--text)">Controls</b><br>
+      <kbd>↑</kbd><kbd>↓</kbd> nose up / down (hold longer for more) &nbsp; <kbd>W</kbd>/<kbd>Shift</kbd> throttle up, <kbd>S</kbd> throttle down<br>
+      <kbd>←</kbd><kbd>→</kbd> or <kbd>A</kbd><kbd>D</kbd> crab against crosswind &nbsp; <kbd>F</kbd> flaps &nbsp; <kbd>Space</kbd>/<kbd>B</kbd> brakes &nbsp; <kbd>P</kbd>/<kbd>Esc</kbd> pause &nbsp; <kbd>M</kbd> sound<br>
+      On a phone: left stick for pitch and crab, right slider for throttle, and buttons for flaps and brakes.
+    </div>
+    <div class="panel">
+      <div class="toggle"><input type="checkbox" id="optGuide" checked><label for="optGuide">Show the dashed approach guide</label></div>
+      <div class="toggle"><input type="checkbox" id="optInvert"><label for="optInvert">Invert pitch (stick back = nose up)</label></div>
+      <div class="toggle"><input type="checkbox" id="optSound" checked><label for="optSound">Engine and stall horn sound</label></div>
+    </div>
+    <p class="sub" style="text-align:center">Browser prototype · the Critic's done-state loop · progress saves on this device when you get back to Willow.</p>
+  </div>
+</div>
+
+<div class="screen" id="scrHangar">
+  <div class="col">
+    <div class="row"><div><div class="sub">Willow Station</div><h1>Hangar</h1></div><span class="sp"></span><div style="text-align:right"><div class="sub">Cash</div><div class="cash big" id="hgCash" style="font-size:24px">$0</div></div></div>
+    <div class="tabs"><button class="tab" id="tabJobs2">Jobs</button><button class="tab on">Hangar</button></div>
+    <div class="panel" style="padding:8px"><div id="hgArt"></div></div>
+    <div class="panel">
+      <h2>Plaque shelf</h2>
+      <div class="shelf"><div id="plaqueSlot"></div></div>
+      <div id="plaqueAct" style="margin-top:10px;text-align:center"></div>
+    </div>
+    <div class="panel">
+      <h2>Logbook</h2>
+      <div id="logbook"></div>
+      <div class="row" style="margin-top:12px"><span class="sp"></span><button class="btn sm" id="btnReset">Reset progress</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="scrPre">
+  <div class="col">
+    <div class="row"><button class="btn sm" id="preBack">← Board</button><span class="sp"></span><span class="sub">Preflight</span></div>
+    <div class="panel" id="preCard"></div>
+    <div class="panel">
+      <h2>Load &amp; plan</h2>
+      <div id="cargoWrap"><label class="sl" for="slCargo">Cargo <b id="vCargo">150 kg</b></label><input type="range" id="slCargo" min="0" max="400" step="10" value="150"></div>
+      <div id="cargoFixed" class="sub"></div>
+      <label class="sl" for="slFuel">Fuel <b id="vFuel">60 L</b></label><input type="range" id="slFuel" min="10" max="140" step="5" value="60">
+      <div style="margin-top:10px" class="row"><span class="sub">Takeoff weight</span><span class="sp"></span><b id="vWt">900 kg</b><span class="sub">&nbsp;/ 1100 max</span></div>
+      <div class="bar"><i id="wtBar"></i></div>
+      <div class="bar" style="height:8px"><i id="fuelBar"></i><span class="mk" id="fuelNeedMk"></span></div>
+      <div class="sub" style="font-size:12px;margin-top:3px">Top bar: weight against max takeoff. Bottom bar: fuel aboard, with a tick at what the route needs plus reserve.</div>
+      <div class="stats" id="preStats"></div>
+      <div id="preWarn" style="margin-top:8px"></div>
+    </div>
+    <div class="row" style="margin-top:6px"><button class="btn" id="preBack2">Back</button><span class="sp"></span><button class="btn pri" id="btnFly">Fly</button></div>
+  </div>
+</div>
+
+<div class="screen" id="scrDebrief">
+  <div class="col">
+    <div class="panel" id="debrief"></div>
+  </div>
+</div>
+
+<div class="screen" id="pause">
+  <div class="col" style="padding-top:12vh">
+    <div class="panel">
+      <h2>Paused</h2>
+      <div class="toggle"><input type="checkbox" id="optGuide2"><label for="optGuide2">Approach guide</label></div>
+      <div class="toggle"><input type="checkbox" id="optInvert2"><label for="optInvert2">Invert pitch</label></div>
+      <div class="toggle"><input type="checkbox" id="optSound2"><label for="optSound2">Sound</label></div>
+      <div class="row wrap" style="margin-top:12px"><button class="btn pri" id="pResume">Resume</button><button class="btn" id="pRestart">Restart flight</button><button class="btn" id="pAbandon">Abandon job</button></div>
+      <p class="sub">Abandoning returns you to the board with no pay and no penalty.</p>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+'use strict';
+(function(){
+// ---------------------------------------------------------------- helpers
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+const lerp=(a,b,t)=>a+(b-a)*t;
+const KTS=1.94384, FT=3.28084;
+const SOFT_FAIL_LINE="Miss it and you keep the plane and your progress \u2014 you lose the bonus and some or all of the pay, read one tip, and can fly it again.";
+function makeRng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+function money(n){return '$'+Math.round(n).toLocaleString('en-US');}
+function mmss(t){t=Math.max(0,Math.ceil(t));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');}
+
+// ---------------------------------------------------------------- data (locked IDs from the pitch package)
+const PLANE={id:'plane_northwind_185',displayName:'Northwind 185',emptyMassKg:650,pilotKg:80,maxTakeoffMassKg:1100,fuelCapacityL:140,fuelKgPerL:0.72,stallSpeedKts:48,cruiseSpeedKts:110};
+const PHYS={g:9.81,rho:1.2,S:16,CL0:0.30,CLa:5.2,aStall:0.24,flapCL:0.42,CD0:0.032,flapCD:0.06,k:0.055,T0:3400,Vt:100,trimAlpha:0.06,
+  burnFull:0.30, softVS:2.3, medevacVS:2.8, hardVS:3.6, crashVS:6.5};
+const WX={
+  WX_CLEAR:{id:'WX_CLEAR',label:'Clear',crosswind:0,gust:0.15,headwind:1.5,ceiling:null,rain:0,ground:0,haze:0,
+    desc:'Clear and calm. Long sightlines, light breeze down the strip.'},
+  WX_CROSSWIND:{id:'WX_CROSSWIND',label:'Crosswind',crosswind:0.6,gust:0.6,headwind:3,ceiling:null,rain:0,ground:0.1,haze:0.05,
+    desc:'Wind across the strip from the left, gusting. Watch the windsock and the drift box on final; crab into it.'},
+  WX_LOW_CEILING:{id:'WX_LOW_CEILING',label:'Low ceiling',crosswind:0,gust:0.25,headwind:2,ceiling:250,rain:0,ground:0,haze:0.35,
+    desc:'Gray lid low over the hills. Stay under the cloud deck; the strip is still readable underneath.'},
+  WX_LIGHT_RAIN:{id:'WX_LIGHT_RAIN',label:'Light rain',crosswind:0,gust:0.3,headwind:2.5,ceiling:null,rain:1,ground:0.3,haze:0.18,
+    desc:'Light rain. Wet gravel brakes about a third worse \u2014 touch down early and get on the brakes.'}
+};
+const JOBS=[
+  {id:'job_freight_devils_elbow_01',type:'freight',title:"Freight \u2014 Devil's Elbow Bar",to:'devils_elbow_bar',wx:'WX_CROSSWIND',xwScale:0.3,
+   payBase:500,payPerKg:3,cargoMin:100,cargoMax:300,cargoDefault:140,payBonusPerfect:200,softFailPayFraction:0.25,
+   cargoLine:'Fuel drums and groceries for the bar camp',notes:'Radio says the bar is short and soft, light crosswind. Clear the spruce, bleed the speed, plant it near the markers.',hero:'Start here'},
+  {id:'job_medevac_devils_elbow_01',type:'medevac',title:"Medevac \u2014 Devil's Elbow Bar",to:'devils_elbow_bar',wx:'WX_CROSSWIND',xwScale:1,
+   payBase:1200,payBonusPerfect:300,softFailPayFraction:0,cargoFixed:90,timeLimitSec:270,requiredSoftLanding:true,passengerCount:1,
+   cargoLine:'Medic and kit out; hurt fisherman back to Willow',notes:'Gusting crosswind on the bar. On time and a soft touchdown, or the run doesn\u2019t count.',hero:'Hero job'},
+  {id:'job_freight_grayling_01',type:'freight',title:'Freight \u2014 Grayling',to:'grayling',wx:'WX_LOW_CEILING',xwScale:0,
+   payBase:450,payPerKg:2,cargoMin:120,cargoMax:320,cargoDefault:200,payBonusPerfect:150,softFailPayFraction:0.25,
+   cargoLine:'Mail sacks and a generator part for the store',notes:'Ceiling\u2019s low. Stay under the gray; look for the tall false-front store beside the strip.'},
+  {id:'job_pax_loon_lake_01',type:'passengers',title:'Passengers \u2014 Loon Lake',to:'loon_lake',wx:'WX_LIGHT_RAIN',xwScale:0,
+   payBase:800,payBonusPerfect:200,softFailPayFraction:0.25,cargoFixed:170,passengerCount:2,
+   cargoLine:'Two cabin owners and their gear',notes:'Light rain, wet gravel on a shoreline strip. Smooth touchdown keeps them happy; the lake is right past the end.'}
+];
+// Route geometry. x in metres east of the Willow threshold, heights in metres above sea level.
+const COMMON_START=[[-650,66,.3],[-120,60,0],[0,60,0],[650,60,0],[700,57,0],[900,62,.4]];
+const ROUTES={
+  devils_elbow_bar:{seed:7,end:8200,rockLine:215,snowLine:240,
+    strip:{id:'devils_elbow_bar',name:"Devil's Elbow Bar",loc:'LOC_BAR',x0:5900,x1:6220,elev:140,half:14,surf:6},
+    pts:[[1500,82,.6],[2050,128,.8],[2450,190,1],[2800,258,1],[3100,232,1],[3550,182,.8],[4050,158,.6],[4420,142,.3],[5480,141,.1],[5540,143,0],[5790,143,0],[5870,140,0],[6220,140,0],[6250,136,0],[6950,136,0],[7080,152,.5],[8200,196,.8]],
+    rivers:[{x0:690,x1:860,level:57.5,depth:3},{x0:4520,x1:4600,level:139.6,depth:1.6},{x0:4730,x1:4860,level:139.6,depth:2},{x0:4990,x1:5050,level:139.6,depth:1.5},{x0:5190,x1:5320,level:139.6,depth:2},{x0:5410,x1:5480,level:139.6,depth:1.5},{x0:6232,x1:6980,level:139,depth:4}],
+    bars:[[4440,5530]],
+    trees:[{x0:-640,x1:-140,d:3,h:[8,13]},{x0:960,x1:2300,d:1.5,h:[7,13]},{x0:3450,x1:4380,d:2.2,h:[9,15]},{x0:5550,x1:5765,d:9,h:[11,15]},{x0:7000,x1:8200,d:3,h:[10,16]}],
+    props:[{k:'windsock',x:5935,big:1},{k:'drums',x:6160},{k:'markers'}],
+    radio:[[40,'Willow traffic, Northwind rolling for Devil\u2019s Elbow. Full power, ease back around 55 knots.'],
+      [760,'River bend below. Follow the valley east toward the ridge.'],
+      [1700,'Ridge ahead, about 650 feet above Willow. Heavy loads: keep climbing now.'],
+      [3300,'Over the ridge. Ease the power back and start down toward the braids.'],
+      [4400,'Braided channels. The bar is past the spruce stand \u2014 look for the windsock.'],
+      ['gate','Devil\u2019s Elbow in sight. Flaps down (F), ride the dashed line over the spruce, plant it short.']]},
+  grayling:{seed:11,end:7400,rockLine:400,snowLine:999,
+    strip:{id:'grayling',name:'Grayling',loc:'LOC_VILLAGE',x0:5200,x1:5650,elev:90,half:16,surf:1},
+    pts:[[1500,95,.6],[2100,140,.8],[2600,172,.8],[3100,150,.7],[3480,112,.4],[3520,104,0],[3640,104,0],[3700,112,.4],[4300,118,.5],[4800,98,.3],[5040,93,0],[5140,92,0],[5180,90,0],[5650,90,0],[5720,94,.3],[6300,120,.6],[7400,150,.7]],
+    rivers:[{x0:690,x1:860,level:57.5,depth:3},{x0:3530,x1:3630,level:105,depth:2.5}],
+    bars:[],
+    trees:[{x0:-640,x1:-140,d:3,h:[8,13]},{x0:960,x1:3400,d:1.6,h:[7,13]},{x0:3700,x1:4950,d:2,h:[8,13]},{x0:5040,x1:5110,d:8,h:[8,11]},{x0:5720,x1:7400,d:3,h:[9,14]}],
+    props:[{k:'windsock',x:5230},{k:'cabins',x:5320},{k:'markers'}],
+    radio:[[40,'Willow traffic, Northwind rolling for Grayling. Ceiling\u2019s low \u2014 stay under the gray.'],
+      [760,'River bend below. Hold it low and follow the valley.'],
+      [1800,'Rising ground ahead. Climb a little, but keep the cloud deck above you.'],
+      [3450,'Creek crossing. Grayling is the next clearing east.'],
+      ['gate','Grayling in sight \u2014 tall false-front store beside the strip. Flaps down, over the trees, touch down early.']]},
+  loon_lake:{seed:23,end:7000,rockLine:250,snowLine:262,
+    strip:{id:'loon_lake',name:'Loon Lake',loc:'LOC_LAKE',x0:4700,x1:5080,elev:205,half:15,surf:1},
+    pts:[[1500,90,.6],[2000,150,.9],[2350,215,1],[2600,268,1],[2850,250,1],[3300,224,.8],[3900,214,.6],[4350,212,.4],[4480,208,0],[4600,208,0],[4660,205,0],[5080,205,0],[5100,200,0],[5800,200,0],[5900,214,.5],[7000,250,.8]],
+    rivers:[{x0:690,x1:860,level:57.5,depth:3},{x0:5092,x1:5830,level:203.5,depth:5,lake:1}],
+    bars:[],
+    trees:[{x0:-640,x1:-140,d:3,h:[8,13]},{x0:960,x1:2200,d:1.6,h:[7,13]},{x0:3000,x1:4400,d:2.2,h:[9,15]},{x0:4500,x1:4590,d:9,h:[10,14]},{x0:5850,x1:7000,d:4,h:[11,17]}],
+    props:[{k:'windsock',x:4730},{k:'dock',x:5095},{k:'markers'}],
+    radio:[[40,'Willow traffic, Northwind rolling for Loon Lake with two aboard. Rain on the windscreen.'],
+      [760,'River bend below. Ridge comes up quick on this route.'],
+      [1600,'Ridge ahead, about 700 feet above Willow. Climb now.'],
+      [3000,'Over the top. Loon Lake sits in the spruce ring ahead.'],
+      ['gate','Loon Lake in sight \u2014 dark water past the strip. Flaps down, over the spruce ring, touch down early, brake hard on wet gravel.']]}
+};
+const WILLOW={id:'willow_station',name:'Willow Station',loc:'LOC_HOME',x0:0,x1:650,elev:60,half:18,surf:1};
+const GUIDE_DEG=6.5, AIM_OFF=50, GATE_DIST=1500;
+
+// surface codes: 0 scrub, 1 gray gravel strip, 2 rock, 3 braided gravel (rough), 5 water, 6 pale river-bar strip
+function buildWorld(destId){
+  const R=ROUTES[destId];
+  const res=5,x0=-650,n=Math.ceil((R.end-x0)/res)+1;
+  const h=new Float32Array(n),water=new Float32Array(n).fill(-1e9),surf=new Uint8Array(n),lake=new Uint8Array(n);
+  const rng=makeRng(R.seed);
+  const ph=[rng()*6.28,rng()*6.28,rng()*6.28];
+  const pts=COMMON_START.concat(R.pts);
+  let seg=0;
+  for(let i=0;i<n;i++){
+    const x=x0+i*res;
+    while(seg<pts.length-2&&x>pts[seg+1][0])seg++;
+    const a=pts[seg],b=pts[Math.min(seg+1,pts.length-1)];
+    let t=b[0]===a[0]?0:clamp((x-a[0])/(b[0]-a[0]),0,1);t=t*t*(3-2*t);
+    const base=lerp(a[1],b[1],t),rough=lerp(a[2],b[2],t);
+    const nz=6*Math.sin(x/97+ph[0])+3*Math.sin(x/41+ph[1])+1.4*Math.sin(x/17+ph[2]);
+    h[i]=base+rough*nz;
+  }
+  const strips=[WILLOW,R.strip];
+  for(const s of strips){
+    for(let i=0;i<n;i++){
+      const x=x0+i*res;
+      if(x>=s.x0&&x<=s.x1){h[i]=s.elev;surf[i]=s.surf;}
+      else if(x>s.x0-40&&x<s.x0){h[i]=lerp(h[i],s.elev,(x-(s.x0-40))/40);}
+      else if(x>s.x1&&x<s.x1+12){h[i]=lerp(s.elev,h[i],(x-s.x1)/12);}
+    }
+  }
+  for(const r of R.rivers){
+    for(let i=0;i<n;i++){
+      const x=x0+i*res;if(x<r.x0||x>r.x1)continue;
+      const u=(x-r.x0)/(r.x1-r.x0),bell=Math.pow(Math.sin(Math.PI*u),0.5);
+      h[i]=Math.min(h[i],r.level-0.4-r.depth*bell);water[i]=r.level;surf[i]=5;if(r.lake)lake[i]=1;
+    }
+  }
+  for(const br of R.bars){for(let i=0;i<n;i++){const x=x0+i*res;if(x>=br[0]&&x<=br[1]&&surf[i]===0)surf[i]=3;}}
+  for(let i=0;i<n;i++){if(surf[i]===0&&h[i]>R.rockLine)surf[i]=2;}
+  const W={id:destId,R,res,x0,n,h,water,surf,lake,strips,dest:R.strip,trees:[],end:R.end};
+  W.groundAt=function(x){const f=(x-x0)/res;let i=Math.floor(f);if(i<0)return h[0];if(i>=n-1)return h[n-1];const t=f-i;return h[i]*(1-t)+h[i+1]*t;};
+  W.idx=x=>clamp(Math.round((x-x0)/res),0,n-1);
+  W.waterAt=x=>water[W.idx(x)];
+  W.surfAt=x=>surf[W.idx(x)];
+  W.stripAt=x=>{for(const s of strips)if(x>=s.x0&&x<=s.x1)return s;return null;};
+  for(const z of R.trees){
+    let x=z.x0+rng()*20;
+    while(x<z.x1){
+      const sc=W.surfAt(x),wl=W.waterAt(x);
+      if(sc!==5&&sc!==1&&sc!==6&&wl<-1e8&&!W.stripAt(x)){
+        const th=lerp(z.h[0],z.h[1],rng());
+        W.trees.push({x,base:W.groundAt(x),h:th,w:th*0.42,shade:rng()});
+      }
+      x+=100/z.d*(0.45+rng()*1.1);
+    }
+  }
+  W.trees.sort((a,b)=>a.x-b.x);
+  W.treeHit=function(x,y){
+    // binary search for trees within 6 m
+    let lo=0,hi=W.trees.length-1;
+    while(lo<hi){const m=(lo+hi)>>1;if(W.trees[m].x<x-6)lo=m+1;else hi=m;}
+    for(let i=lo;i<W.trees.length&&W.trees[i].x<x+6;i++){
+      const t=W.trees[i],dx=Math.abs(x-t.x);if(dx>t.w/2)continue;
+      const top=t.base+t.h*(1-dx/(t.w/2));if(y<top&&y>t.base-1)return true;
+    }
+    return false;
+  };
+  W.gateX=R.strip.x0-GATE_DIST;
+  W.aimX=R.strip.x0+AIM_OFF;
+  W.distance=R.strip.x0-WILLOW.x1;
+  return W;
+}
+// ---------------------------------------------------------------- save
+const SAVE_KEY='bpa_save_v1',OPT_KEY='bpa_opts_v1';
+function defaultSave(){return{version:1,savedAt:null,trigger:'hangar_arrival',cash:0,hangarUnlocked:true,cosmeticsOwned:[],
+  plaques:[{id:'plaque_medevac_first',unlocked:false,placed:false}],jobsCompleted:[],jobsSoftFailed:[],planeId:PLANE.id,log:[]};}
+// BPA-09: load any stored save defensively. The v1 build's save shape is the current shape (version 1), so a v1
+// save loads as-is; every field is type-checked and repaired field-by-field, falling back to defaults only for the
+// parts that are missing or malformed. Version stays 1 so the v1 build can still read saves written by this build.
+const SAVE_VERSION=1;
+function sanitizeSave(raw){
+  const d=defaultSave();
+  if(!raw||typeof raw!=='object'||Array.isArray(raw))return {save:d,repaired:raw!=null};
+  let repaired=false;const fix=(ok,v,dv)=>{if(ok)return v;if(v!==undefined)repaired=true;return dv;};
+  const isStr=v=>typeof v==='string',jobIds=JOBS.map(j=>j.id),okJob=v=>isStr(v)&&jobIds.includes(v);
+  const num=v=>typeof v==='number'?v:(isStr(v)&&v.trim()!==''?Number(v):NaN);
+  const out=d;
+  out.version=SAVE_VERSION;
+  if(raw.version!==SAVE_VERSION)repaired=true;
+  out.savedAt=fix(raw.savedAt===null||(isStr(raw.savedAt)&&!isNaN(Date.parse(raw.savedAt))),raw.savedAt,null);
+  out.trigger=fix(isStr(raw.trigger),raw.trigger,d.trigger);
+  const c=num(raw.cash);out.cash=fix(Number.isFinite(c)&&c>=0,Math.round(c),0);if(Number.isFinite(c)&&typeof raw.cash!=='number')repaired=true;
+  out.hangarUnlocked=fix(typeof raw.hangarUnlocked==='boolean',raw.hangarUnlocked,true);
+  out.cosmeticsOwned=fix(Array.isArray(raw.cosmeticsOwned),(raw.cosmeticsOwned||[]),[]).filter(isStr);
+  out.jobsCompleted=fix(Array.isArray(raw.jobsCompleted),raw.jobsCompleted,[]).filter(okJob);
+  out.jobsSoftFailed=fix(Array.isArray(raw.jobsSoftFailed),raw.jobsSoftFailed,[]).filter(okJob);
+  if(Array.isArray(raw.jobsCompleted)&&out.jobsCompleted.length!==raw.jobsCompleted.length)repaired=true;
+  if(Array.isArray(raw.jobsSoftFailed)&&out.jobsSoftFailed.length!==raw.jobsSoftFailed.length)repaired=true;
+  out.planeId=fix(raw.planeId===PLANE.id,raw.planeId,PLANE.id);
+  // plaques: keep the known plaque's flags if present; unknown ids / junk entries are dropped
+  const src=Array.isArray(raw.plaques)?raw.plaques.find(q=>q&&typeof q==='object'&&q.id==='plaque_medevac_first'):null;
+  if(!Array.isArray(raw.plaques)||!src||raw.plaques.length!==1)repaired=true;
+  const pq=out.plaques[0];
+  if(src){pq.unlocked=src.unlocked===true;pq.placed=src.placed===true;if(typeof src.unlocked!=='boolean'||typeof src.placed!=='boolean')repaired=true;}
+  // derive from the data where possible: a completed medevac earns the plaque; a hung plaque must be earned
+  if(out.jobsCompleted.some(id=>JOBS.find(j=>j.id===id).type==='medevac'))pq.unlocked=true;
+  if(pq.placed)pq.unlocked=true;
+  // logbook: keep well-formed entries, rebuild display fields from the job table
+  out.log=[];
+  if(Array.isArray(raw.log)){for(const l of raw.log){
+    if(!l||typeof l!=='object'||!okJob(l.id)){repaired=true;continue;}
+    const pay=num(l.pay),job=JOBS.find(j=>j.id===l.id);
+    out.log.push({id:l.id,title:job.title,ok:l.ok===true,perfect:l.perfect===true,reason:isStr(l.reason)?l.reason:null,
+      pay:Number.isFinite(pay)?Math.round(pay):0,at:isStr(l.at)&&!isNaN(Date.parse(l.at))?l.at:null});
+    if(l.title!==job.title||typeof l.ok!=='boolean'||!Number.isFinite(pay))repaired=true;
+  }}else if(raw.log!==undefined)repaired=true;
+  out.log=out.log.slice(0,12);
+  return {save:out,repaired};
+}
+function loadSave(){
+  let txt=null;try{txt=localStorage.getItem(SAVE_KEY);}catch(e){}
+  if(txt==null)return defaultSave();
+  let raw;try{raw=JSON.parse(txt);}catch(e){raw=undefined;}
+  const r=sanitizeSave(raw===undefined?'corrupt':raw);
+  // keep a copy of anything we had to repair, so the original is never silently lost on the next write
+  if(r.repaired){try{localStorage.setItem(SAVE_KEY+'_backup',txt);}catch(e){}}
+  return r.save;
+}
+function writeSave(){SAVE.savedAt=new Date().toISOString();SAVE.trigger='hangar_arrival';try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}}
+let SAVE=loadSave();
+let OPTS={guide:true,invert:false,sound:true};
+try{const o=JSON.parse(localStorage.getItem(OPT_KEY));if(o&&typeof o==='object')for(const k in OPTS)if(typeof o[k]==='boolean')OPTS[k]=o[k];}catch(e){}
+function saveOpts(){try{localStorage.setItem(OPT_KEY,JSON.stringify(OPTS));}catch(e){}}
+const plaque=()=>SAVE.plaques.find(p=>p.id==='plaque_medevac_first');
+
+// ---------------------------------------------------------------- input
+const keys={};
+const touchIn={stick:null,sx:0,sy:0,thr:null,brake:false};
+// BPA-02: keyboard pitch ramps with hold time instead of jumping to full deflection.
+const KB_RAMP_UP=1.6,KB_RAMP_BACK=6;let kbPitch=0;
+function rampKeyPitch(dt){const t=keyPitch();
+  if(t===0||(kbPitch!==0&&Math.sign(t)!==Math.sign(kbPitch))){const d=KB_RAMP_BACK*dt;kbPitch=Math.abs(kbPitch)<=d?0:kbPitch-Math.sign(kbPitch)*d;return kbPitch;}
+  kbPitch=clamp(kbPitch+t*KB_RAMP_UP*dt,-1,1);return kbPitch;}
+function keyPitch(){let v=0;if(keys.ArrowUp)v+=1;if(keys.ArrowDown)v-=1;return v;}
+function keyLat(){let v=0;if(keys.ArrowLeft||keys.KeyA)v-=1;if(keys.ArrowRight||keys.KeyD)v+=1;return v;}
+
+// ---------------------------------------------------------------- flight
+let F=null;const worldCache={};
+function getWorld(id){return worldCache[id]||(worldCache[id]=buildWorld(id));}
+function massOf(job,cargo,fuel){return PLANE.emptyMassKg+PLANE.pilotKg+cargo+fuel*PLANE.fuelKgPerL;}
+function stallKts(mass,flaps){const clmax=PHYS.CL0+PHYS.CLa*(PHYS.aStall-(flaps?0.02:0))+(flaps?PHYS.flapCL:0);return Math.sqrt(2*mass*PHYS.g/(PHYS.rho*PHYS.S*clmax))*KTS;}
+// BPA-01: on departure (before the approach gate), while low, neutral stick auto-trims to the AoA that holds
+// level flight with a slight climb (capped under the stall AoA), so letting go after liftoff no longer sinks the
+// plane. It blends back to the old fixed trim (0.06) between 30 m and 120 m above ground. Above ~72 kts the hold
+// AoA is below 0.06 anyway, so cruise and the approach keep the original hands-off behaviour.
+const WARN_KTS_MARGIN=4,CLOUD_GRACE=3;
+const TRIM_LIFT=1.03,TRIM_MARGIN=0.08,UP_MARGIN=0.08,TRIM_AGL_LO=30,TRIM_AGL_HI=120;
+function trimAlphaFor(m,q,agl,flaps,ge,aS,departing){
+  if(!departing)return PHYS.trimAlpha;
+  const hold=(m*PHYS.g*TRIM_LIFT/(Math.max(q,1)*PHYS.S*ge)-PHYS.CL0-(flaps?PHYS.flapCL:0))/PHYS.CLa;
+  const u=clamp((agl-TRIM_AGL_LO)/(TRIM_AGL_HI-TRIM_AGL_LO),0,1),sm=u*u*(3-2*u);
+  return clamp(lerp(Math.max(hold,PHYS.trimAlpha),PHYS.trimAlpha,sm),PHYS.trimAlpha,Math.max(PHYS.trimAlpha,aS-TRIM_MARGIN));}
+// BPA-02: full nose-up commands at most aS-UP_MARGIN, under the stall-warning band (aS-0.035).
+function alphaCmdFor(inP,trim,aS){return inP>0?lerp(trim,Math.max(trim,aS-UP_MARGIN),inP):trim+inP*0.16;}
+function fuelNeed(W){return Math.round((W.distance+900)/40*PHYS.burnFull*0.85);}
+function jobPay(job,cargo){return job.type==='freight'?job.payBase+job.payPerKg*Math.max(0,cargo-job.cargoMin):job.payBase;}
+
+function startFlight(job,cargo,fuel){
+  const W=getWorld(job.to),wx=WX[job.wx];
+  F={job,W,wx,xw:wx.crosswind*(job.xwScale||0),cargo,fuel0:fuel,
+    p:{x:30,y:W.groundAt(30),vx:0,vy:0,theta:0.16,thr:0,flaps:false,brakes:false,onGround:true,fuel,engine:true,crab:0,off:0,offRate:0,mass:massOf(job,cargo,fuel)},
+    t:0,inPitch:0,cloudT:0,inLat:0,radioIdx:0,radioText:'',radioT:0,touchdown:null,ended:false,endT:0,result:null,snap:null,gatePassed:false,
+    goArounds:0,stalled:false,warn:false,effects:[],shake:0,airborne:false,V:0,alpha:0,cw:0,inCloud:false,gradeText:'',gradeT:0,lastGust:0};
+  cam.init=true;kbPitch=0;
+  setRadio(W.R.radio[0][1]);F.radioIdx=1;
+}
+function setRadio(t){if(!F)return;F.radioText=t;F.radioT=9;}
+function gust(t,o){return 0.5*Math.sin(t*0.83+o)+0.3*Math.sin(t*2.1+o*1.7)+0.2*Math.sin(t*4.7+o*2.9);}
+
+function clFor(alpha,flaps,aS){
+  const base=PHYS.CL0+(flaps?PHYS.flapCL:0);
+  if(alpha>aS){return Math.max(0.75,base+PHYS.CLa*aS-(alpha-aS)*3.5);}
+  if(alpha<-0.22)return base+PHYS.CLa*-0.22;
+  return base+PHYS.CLa*alpha;
+}
+
+function stepFlight(dt){
+  const p=F.p,W=F.W,wx=F.wx,job=F.job,D=W.dest;
+  F.t+=dt;
+  if(F.ended){F.endT+=dt;p.vx*=Math.pow(0.2,dt);return;}
+  // --- inputs
+  let tp,tl;
+  if(F.ext){tp=F.ext.pitch||0;tl=F.ext.lat||0;p.thr=clamp(F.ext.thr!=null?F.ext.thr:p.thr,0,1);p.brakes=!!F.ext.brakes;if(F.ext.flaps!=null)p.flaps=!!F.ext.flaps;}
+  else{
+    if(touchIn.stick!=null){tp=touchIn.sy;tl=touchIn.sx;if(OPTS.invert)tp=-tp;}else{tp=rampKeyPitch(dt);tl=keyLat();if(OPTS.invert)tp=-tp;}
+    if(keys.KeyW||keys.ShiftLeft||keys.ShiftRight)p.thr+=0.7*dt;
+    if(keys.KeyS)p.thr-=0.7*dt;
+    p.thr=clamp(p.thr,0,1);
+    p.brakes=!!(keys.Space||keys.KeyB||touchIn.brake);
+  }
+  F.inPitch+=(tp-F.inPitch)*Math.min(1,dt*7);
+  F.inLat=tl;
+  const inP=F.inPitch;
+  // --- mass & fuel
+  if(p.engine&&p.fuel>0){p.fuel-=(0.08+0.92*p.thr)*PHYS.burnFull*dt;if(p.fuel<=0){p.fuel=0;p.engine=false;setRadio('Engine\u2019s quiet \u2014 out of fuel. Glide it to the strip if you can.');}}
+  p.mass=massOf(job,F.cargo,p.fuel);
+  const m=p.mass;
+  // --- wind
+  const gA=wx.gust*(job.xwScale?Math.max(0.5,job.xwScale):1);
+  const gH0=W.groundAt(p.x);
+  const agl=Math.max(0,p.y-gH0);
+  const head=wx.headwind*(1+0.45*gust(F.t,1.3)*gA);
+  const up=p.onGround?0:gA*1.25*gust(F.t*1.4,4.1)*clamp(agl/12,0,1);
+  const axr=p.vx+head,ayr=p.vy-up;
+  const V=Math.hypot(axr,ayr)||0.001,gam=Math.atan2(ayr,axr);
+  const alpha=p.theta-gam;
+  const aS=PHYS.aStall-(p.flaps?0.02:0)+(agl<6?0.04*(1-agl/6):0);
+  const CL=clFor(alpha,p.flaps,aS);
+  const stalled=!p.onGround&&alpha>aS;
+  const ge=agl<8?1+0.1*(1-agl/8):1;
+  const q=0.5*PHYS.rho*V*V;
+  const L=q*PHYS.S*CL*ge;
+  const Dr=q*PHYS.S*(PHYS.CD0+(p.flaps?PHYS.flapCD:0)+PHYS.k*CL*CL/ge+(p.engine?0.025*(1-p.thr):0.02));
+  const T=p.engine?p.thr*PHYS.T0*Math.max(0.35,1-V/PHYS.Vt):0;
+  let Fx=-L*Math.sin(gam)-Dr*Math.cos(gam)+T*Math.cos(p.theta);
+  let Fy=L*Math.cos(gam)-Dr*Math.sin(gam)+T*Math.sin(p.theta)-m*PHYS.g;
+  F.V=V;F.alpha=alpha;F.aS=aS;
+  if(stalled&&!F.stalled)F.stallCount=(F.stallCount||0)+1;
+  F.stalled=stalled;
+  F.warn=!p.onGround&&(alpha>aS-0.035||V*KTS<stallKts(m,p.flaps)+WARN_KTS_MARGIN);
+  if(p.onGround){
+    const restT=V<16?0.16:0.07;
+    p.theta+=inP*0.5*dt+(restT-p.theta)*(Math.abs(inP)<0.05?1.2:0.3)*dt;
+    p.theta=clamp(p.theta,0,0.24);
+    if(Fy>0&&V>14){p.onGround=false;p.vy=0.2;if(!F.airborne){F.airborne=true;}}
+    else{
+      const soft=W.surfAt(p.x)===6;
+      const mu=(soft?0.06:0.035)+(p.thr<0.08?(soft?0.1:0.07):0)+(p.brakes?0.42*(1-wx.ground):0);
+      const fr=mu*Math.max(0,-Fy);
+      if(Math.abs(p.vx)<0.4&&Math.abs(Fx)<=fr){p.vx=0;}
+      else{const dir=p.vx!==0?Math.sign(p.vx):Math.sign(Fx);p.vx+=(Fx-dir*fr)/m*dt;}
+      p.vy=0;p.y=W.groundAt(p.x);
+    }
+  }else{
+    const trim=trimAlphaFor(m,q,agl,p.flaps,ge,aS,!F.gatePassed);F.trim=trim;
+    const alphaCmd=alphaCmdFor(inP,trim,aS);
+    const sf=clamp(V/30,0.35,1.4);
+    let rate=(alphaCmd-alpha)*3.0*sf;
+    if(stalled)rate-=0.55;
+    p.theta=clamp(p.theta+rate*dt,-1.0,1.0);
+    p.vx+=Fx/m*dt;p.vy+=Fy/m*dt;
+  }
+  p.x+=p.vx*dt;if(!p.onGround)p.y+=p.vy*dt;
+  if(p.x<W.x0+50){p.x=W.x0+50;p.vx=Math.max(0,p.vx);}
+  // --- radio & gate
+  const R=W.R;
+  while(F.radioIdx<R.radio.length){
+    const tr=R.radio[F.radioIdx][0],tx=tr==='gate'?W.gateX:tr;
+    if(p.x>=tx){setRadio(R.radio[F.radioIdx][1]);F.radioIdx++;}else break;
+  }
+  if(!F.gatePassed&&p.x>=W.gateX&&!p.onGround){
+    F.gatePassed=true;p.off=0;p.crab=0;
+    if(F.xw>0)setTimeout(()=>{if(F&&!F.ended)setRadio('Wind\u2019s across the strip from the left. Watch the drift box; \u2190 / \u2192 to crab into it.');},5500);
+    takeSnap();
+  }
+  // --- crosswind drift on final
+  F.cw=0;
+  if(F.xw>0&&F.gatePassed&&!p.onGround&&p.x<=D.x1){
+    const cw=F.xw*4*(1+0.55*gust(F.t*0.9,7.7));F.cw=cw;
+    p.crab=clamp(p.crab+F.inLat*0.55*dt,-1,1);
+    p.offRate=0.28*(cw+p.crab*4);
+    p.off+=p.offRate*dt;
+  }
+  // --- ceiling
+  F.inCloud=!!(wx.ceiling&&p.y>wx.ceiling-8);
+  if(F.inCloud&&!p.onGround)F.cloudT+=dt; // BPA-05: time in cloud costs the clean bonus
+  // --- go-around
+  if(!p.onGround&&p.x>D.x1+350){
+    F.goArounds++;
+    const sp=Math.max(30,Math.hypot(p.vx,p.vy));
+    p.x=D.x0-1350;p.y=D.elev+1350*Math.tan(GUIDE_DEG*Math.PI/180)+25;p.vx=sp;p.vy=0;p.theta=PHYS.trimAlpha;p.off=0;p.crab=0;F.touchdown=null;
+    cam.init=true;
+    setRadio('Going around. Circled back and lined up on final again \u2014 the clock kept running.');
+  }
+  // --- contact / collisions
+  if(!p.onGround){
+    const gH=W.groundAt(p.x),wl=W.waterAt(p.x);
+    if(W.treeHit(p.x,p.y+0.5))return fail('trees');
+    if(wl>gH&&p.y<=wl)return fail('water');
+    if(p.y<=gH)return contact(gH);
+  }else{
+    const s=W.stripAt(p.x);
+    if(!s){
+      if(p.x>D.x1&&p.x<D.x1+300)return fail('overrun');
+      if(p.x>WILLOW.x1&&p.x<WILLOW.x1+300&&!F.airborne)return fail('willowEnd');
+      return fail('rough');
+    }
+    if(s===D&&F.touchdown&&Math.abs(p.vx)<1.2)return succeed();
+  }
+}
+function contact(gH){
+  const p=F.p,W=F.W,D=W.dest,s=W.stripAt(p.x),vs=-p.vy;
+  if(!s){
+    if(p.x<D.x0&&p.x>D.x0-450)return fail('short');
+    if(W.surfAt(p.x)===2)return fail('terrain');
+    if(F.stalled)return fail('stall');
+    return fail(vs>PHYS.crashVS?'crash':'rough');
+  }
+  if(vs>PHYS.crashVS)return fail(F.stalled?'stall':'crash');
+  if(p.theta<-0.12)return fail('nosein');
+  if(vs>PHYS.hardVS)return fail('hard',{vs});
+  if(s===D){
+    F.touchdown={x:p.x-D.x0,vs,off:p.off,t:F.t,stalled:F.stalled};
+    if(Math.abs(p.off)>D.half)return fail('drift');
+    F.gradeText=vs<PHYS.softVS?'Soft touchdown \u00b7 '+Math.round(vs*196.85)+' fpm':'Firm touchdown \u00b7 '+Math.round(vs*196.85)+' fpm';F.gradeT=2.2;
+    burst(p.x,gH,10);
+  }
+  p.onGround=true;p.vy=0;p.y=gH;
+}
+function takeSnap(){const p=F.p;F.snap={p:JSON.parse(JSON.stringify(p)),t:F.t,radioIdx:F.radioIdx,cloudT:F.cloudT};}
+function restoreSnap(){
+  const s=F.snap,W=F.W,D=W.dest,tg=Math.tan(GUIDE_DEG*Math.PI/180);
+  Object.assign(F.p,JSON.parse(JSON.stringify(s.p)));F.t=s.t;F.radioIdx=s.radioIdx;F.cloudT=s.cloudT||0;
+  // put the plane back on a stable final: on the guide line, 60 kts, flaps down, power set
+  const p=F.p,x=W.gateX+20;p.x=x;p.y=D.elev+(W.aimX-x)*tg+8;p.vx=31;p.vy=-31*tg;p.theta=PHYS.trimAlpha-Math.atan(tg)+0.02;
+  p.thr=0.3;p.flaps=true;p.onGround=false;p.brakes=false;p.engine=p.fuel>0;
+  F.ended=false;F.endT=0;F.result=null;F.touchdown=null;F.stalled=false;F.effects=[];F.shake=0;F.gatePassed=true;F.p.off=0;F.p.crab=0;F.inPitch=0;F.gradeT=0;F.gradeText='';
+  cam.init=true;setRadio('Back on final. Same wind, same bar. Take your time.');
+}
+const REASONS={
+  hard:{title:'Hard touchdown',tip:'Ease the nose up in the last few feet and let it settle. Watch the VS readout: under about 450 fpm is soft, over 700 is hard.'},
+  overrun:{title:'Overran the strip',tip:'Touch down near the threshold markers, pull the power to idle, and hold the brakes (Space or the Brake button) as soon as the wheels are down.'},
+  trees:{title:'Clipped the spruce',tip:'Cross the trees on or above the dashed line. Once you\u2019re past them, pull the power and lower the flaps to steepen the descent.'},
+  short:{title:'Landed short of the strip',tip:'Carry a little more power on final and keep the plane on the dashed guide line until you\u2019re over the gravel.'},
+  water:{title:'Put it in the water',tip:'The strip is the pale gravel between the markers. Ride the dashed line, and if you\u2019re high, go around rather than diving at it.'},
+  drift:{title:'Drifted off the gravel',tip:'Watch the drift box on final. Nudge \u2190 / \u2192 (or the stick sideways) to crab into the wind until the dot holds the centerline.'},
+  stall:{title:'Stalled near the ground',tip:'When the amber stall warning comes up, lower the nose and add power. Keep the speed above the warning until you\u2019re a few feet up, then flare.'},
+  late:{title:'Late on the medevac',tip:'Full power on the climb, cruise level over the ridge, and commit to the first good approach. Go-arounds cost about a minute.'},
+  medevacHard:{title:'Too firm for a patient',tip:'A medevac needs a soft touchdown (under about 550 fpm). Hold a touch of power into the flare and let it settle.'},
+  terrain:{title:'Flew into the ridge',tip:'Heavy loads climb slowly. Start climbing right after takeoff and cross the ridge with plenty of room, or carry less cargo and fuel.'},
+  nosein:{title:'Nosed in',tip:'A taildragger lands on its mains. Keep the nose level or a little up at touchdown, not pointed at the gravel.'},
+  crash:{title:'Hit the ground hard',tip:'Coming down too fast. Level off earlier and follow the dashed approach line down to the strip.'},
+  rough:{title:'Set down on rough ground',tip:'Only the gravel strip is landable. Keep flying until you are over the strip, and follow the dashed line in.'},
+  willowEnd:{title:'Ran off the end at Willow',tip:'On the takeoff roll, let it reach about 50 knots, then ease back (\u2191) to lift off well before the end of the strip.'},
+  fuel:{title:'Ran the tank dry',tip:'Check the route-fuel tick at preflight and carry the reserve. Full power burns fuel much faster than cruise.'}
+};
+function fail(reason,extra){
+  if(F.ended)return;
+  if(!F.p.engine&&F.p.fuel<=0&&reason!=='hard'&&reason!=='overrun'&&reason!=='drift')reason='fuel';
+  F.ended=true;F.endT=0;
+  const crashy=['trees','water','terrain','nosein','crash','stall','rough','short'].includes(reason);
+  const D=F.W.dest,arrived=!crashy&&reason!=='fuel'&&(reason==='overrun'||(F.p.x>=D.x0&&F.p.x<=D.x1));
+  F.result={ok:false,reason,crash:crashy,arrived,...(extra||{})};
+  F.shake=crashy?0.6:0.25;
+  burst(F.p.x,F.p.y,crashy?26:12);
+  F.gradeText=REASONS[reason].title;F.gradeT=3;
+}
+function succeed(){
+  if(F.ended)return;
+  const td=F.touchdown,job=F.job,D=F.W.dest,len=D.x1-D.x0;
+  let reason=null;
+  if(job.type==='medevac'){if(F.t>job.timeLimitSec)reason='late';else if(td.vs>PHYS.medevacVS)reason='medevacHard';}
+  if(reason){F.ended=true;F.endT=0;F.result={ok:false,reason,crash:false,arrived:true};F.gradeText=REASONS[reason].title;F.gradeT=3;return;}
+  const short=td.x<=len*0.45,soft=td.vs<PHYS.softVS,centered=Math.abs(td.off)<=D.half*0.6;
+  const clear=F.cloudT<CLOUD_GRACE;
+  const perfect=short&&soft&&centered&&clear;
+  F.ended=true;F.endT=0;
+  F.result={ok:true,perfect,short,soft,centered,clear,cloudT:F.cloudT,stopMargin:D.x1-F.p.x};
+  F.gradeText=perfect?'Short & true.':'Down and stopped.';F.gradeT=3;
+}
+function burst(x,y,n){for(let i=0;i<n;i++)F.effects.push({x,y:y+0.5,vx:(Math.random()-0.3)*8,vy:Math.random()*5,life:1+Math.random()*0.8,r:1+Math.random()*2});}
+// ---------------------------------------------------------------- rendering
+const cv=$('#cv'),ctx=cv.getContext('2d');
+let Wc=800,Hc=600,dpr=1;
+function resize(){dpr=Math.min(2,window.devicePixelRatio||1);Wc=window.innerWidth;Hc=window.innerHeight;cv.width=Math.round(Wc*dpr);cv.height=Math.round(Hc*dpr);}
+window.addEventListener('resize',resize);resize();
+const cam={x:0,y:60,scale:2,ax:0.42,ay:0.45,init:true};
+let SX=x=>(x-cam.x)*cam.scale+Wc*cam.ax, SY=y=>Hc*cam.ay-(y-cam.y)*cam.scale;
+const COL={scrub:'#8A9A72',scrubD:'#6B7A5C',rock:'#7A7E82',snow:'#D4D8DC',gravel:'#9A9EA2',bar:'#CFC7B2',braid:'#A19F92',river:'#56615F',lake:'#2C3331',riverHi:'#8D9C9E'};
+const SURFCOL=['#8A9A72','#A3A7AA','#7A7E82','#A19F92','#8A9A72','#56615F','#D3CBB5'];
+let rainP=[],driftP=[];
+for(let i=0;i<140;i++)rainP.push({x:Math.random(),y:Math.random(),l:0.5+Math.random()});
+for(let i=0;i<70;i++)driftP.push({x:Math.random(),y:Math.random(),s:0.5+Math.random()});
+let clock=0;
+
+function ridge(u,seed){return 0.55*Math.sin(u*1.0+seed)+0.3*Math.sin(u*2.3+seed*2.1)+0.15*Math.abs(Math.sin(u*5.7+seed*0.7));}
+function drawSky(wx){
+  const g=ctx.createLinearGradient(0,0,0,Hc);
+  if(wx.id==='WX_LOW_CEILING'){g.addColorStop(0,'#848E95');g.addColorStop(1,'#A9B1B5');}
+  else if(wx.id==='WX_LIGHT_RAIN'){g.addColorStop(0,'#77848D');g.addColorStop(1,'#A2ACB2');}
+  else{g.addColorStop(0,'#7A8FA0');g.addColorStop(0.65,'#A8B8C4');g.addColorStop(1,'#BFC9CF');}
+  ctx.fillStyle=g;ctx.fillRect(0,0,Wc,Hc);
+  if(wx.id==='WX_CLEAR'||wx.id==='WX_CROSSWIND'){
+    const sx=Wc*0.78,sy=Hc*0.2;const rg=ctx.createRadialGradient(sx,sy,4,sx,sy,90);
+    rg.addColorStop(0,'rgba(232,228,216,.85)');rg.addColorStop(0.25,'rgba(232,228,216,.35)');rg.addColorStop(1,'rgba(232,228,216,0)');
+    ctx.fillStyle=rg;ctx.fillRect(sx-90,sy-90,180,180);
+  }
+  // soft clouds
+  ctx.fillStyle=wx.id==='WX_CLEAR'?'rgba(232,228,216,.35)':'rgba(220,224,226,.4)';
+  for(let i=0;i<6;i++){
+    const u=((i*397-cam.x*0.06-clock*3)%(Wc+400)+Wc+400)%(Wc+400)-200;
+    const y=Hc*(0.1+0.07*(i%3));
+    ctx.beginPath();ctx.ellipse(u,y,90+20*(i%2),14,0,0,7);ctx.ellipse(u+50,y-6,60,12,0,0,7);ctx.fill();
+  }
+}
+function drawParallax(wx,W){
+  const gy=SY(W.groundAt(cam.x));
+  const hz=clamp(gy,Hc*0.35,Hc*0.82)+4;
+  const layers=[{p:0.04,k:0.006,a:Hc*0.2,b:-Hc*0.05,c:'#91A0AC',snow:0.55,s:1.3},{p:0.12,k:0.009,a:Hc*0.11,b:-Hc*0.01,c:'#7E8B8B',s:4.2},{p:0.3,k:0.014,a:Hc*0.06,b:Hc*0.01,c:'#6A7869',s:8.1}];
+  for(const L of layers){
+    const pts=[];let top=1e9;
+    for(let sx=-8;sx<=Wc+8;sx+=8){const u=(cam.x*L.p+sx)*L.k;const y=hz+L.b-L.a*ridge(u,L.s);pts.push([sx,y]);top=Math.min(top,y);}
+    ctx.beginPath();ctx.moveTo(pts[0][0],Hc);for(const q of pts)ctx.lineTo(q[0],q[1]);ctx.lineTo(Wc+8,Hc);ctx.closePath();
+    ctx.fillStyle=L.c;ctx.fill();
+    if(L.snow){ctx.save();ctx.clip();ctx.fillStyle='#D4D8DC';const sy=hz+L.b-L.a*L.snow;ctx.fillRect(0,0,Wc,sy);ctx.fillStyle='rgba(145,160,172,.55)';ctx.fillRect(0,sy-3,Wc,3);ctx.restore();}
+    if(wx.haze>0){ctx.fillStyle=`rgba(170,180,186,${wx.haze*0.4})`;ctx.fillRect(0,0,Wc,Hc);}
+  }
+}
+function drawSpruce(sx,sy,hp,wp,shade){
+  ctx.fillStyle=shade<0.5?'#3E4A3B':'#4A5644';
+  ctx.beginPath();ctx.moveTo(sx,sy-hp);
+  const tiers=hp<10?1:4;
+  for(let k=1;k<=tiers;k++){const f=k/tiers;ctx.lineTo(sx+wp/2*f,sy-hp+hp*0.88*f);ctx.lineTo(sx+wp/2*f*0.45,sy-hp+hp*0.88*f);}
+  ctx.lineTo(sx+wp*0.08,sy);ctx.lineTo(sx-wp*0.08,sy);
+  for(let k=tiers;k>=1;k--){const f=k/tiers;ctx.lineTo(sx-wp/2*f*0.45,sy-hp+hp*0.88*f);ctx.lineTo(sx-wp/2*f,sy-hp+hp*0.88*f);}
+  ctx.closePath();ctx.fill();
+}
+function drawWorld(W,wx,dt){
+  const sc=cam.scale,xl=cam.x-(Wc*cam.ax)/sc-20,xr=cam.x+(Wc*(1-cam.ax))/sc+20;
+  // ceiling deck (world space)
+  if(wx.ceiling){
+    const cy=SY(wx.ceiling);
+    if(cy>-40){
+      const g=ctx.createLinearGradient(0,cy-60,0,cy+18);g.addColorStop(0,'rgba(150,158,164,.97)');g.addColorStop(1,'rgba(150,158,164,0)');
+      ctx.fillStyle='rgba(150,158,164,.97)';ctx.fillRect(0,0,Wc,Math.max(0,cy-60));ctx.fillStyle=g;ctx.fillRect(0,cy-60,Wc,78);
+    }
+  }
+  // background props (behind terrain edge)
+  for(const pr of W.R.props){if(pr.k==='cabins')drawCabins(pr.x,W);}
+  // terrain
+  const step=Math.max(W.res,2.5/sc);
+  const g0=SY(W.groundAt(cam.x));const tg=ctx.createLinearGradient(0,g0-20,0,Math.max(g0+60,Hc));tg.addColorStop(0,'#6B7A5C');tg.addColorStop(0.35,'#56634A');tg.addColorStop(1,'#3B4536');
+  ctx.fillStyle=tg;ctx.beginPath();ctx.moveTo(SX(xl),Hc+5);
+  for(let x=xl;x<=xr+step;x+=step)ctx.lineTo(SX(x),SY(W.groundAt(x)));
+  ctx.lineTo(SX(xr+step),Hc+5);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(82,96,70,.55)';ctx.lineWidth=clamp(sc*4,6,16);ctx.beginPath();
+  for(let x=xl;x<=xr+step;x+=step){const yy=SY(W.groundAt(x))+ctx.lineWidth/2+1;if(x===xl)ctx.moveTo(SX(x),yy);else ctx.lineTo(SX(x),yy);}ctx.stroke();
+  // water
+  const i0=W.idx(xl),i1=W.idx(xr);
+  let run=null;
+  const flush=()=>{if(!run)return;const lk=W.lake[run.a];ctx.fillStyle=lk?COL.lake:COL.river;ctx.beginPath();
+    const xa=W.x0+run.a*W.res,xb=W.x0+run.b*W.res,lvl=W.water[run.a];
+    ctx.moveTo(SX(xa-W.res/2),SY(lvl));ctx.lineTo(SX(xb+W.res/2),SY(lvl));
+    for(let j=run.b;j>=run.a;j--)ctx.lineTo(SX(W.x0+j*W.res),SY(W.h[j]));ctx.closePath();ctx.fill();
+    ctx.strokeStyle=lk?'rgba(120,135,138,.7)':'rgba(141,160,164,.9)';ctx.lineWidth=Math.max(2.5,sc*0.6);ctx.beginPath();ctx.moveTo(SX(xa),SY(lvl));ctx.lineTo(SX(xb),SY(lvl));ctx.stroke();run=null;};
+  for(let i=i0;i<=i1;i++){if(W.water[i]>W.h[i]){if(run)run.b=i;else run={a:i,b:i};}else flush();}
+  flush();
+  // surface strokes
+  const lw=clamp(sc*1.3,2,6);
+  ctx.lineCap='butt';
+  let cur=-1;ctx.beginPath();
+  for(let i=i0;i<=i1;i++){
+    let s=W.surf[i];if(s===5)s=-2;
+    if(s===2&&W.h[i]>W.R.snowLine)s=7;
+    if(s!==cur){if(cur>=0)ctx.stroke();cur=s;if(s>=0){ctx.strokeStyle=s===7?COL.snow:SURFCOL[s];ctx.lineWidth=(s===1||s===6)?lw*1.7:lw;ctx.beginPath();ctx.moveTo(SX(W.x0+(i-1)*W.res),SY(W.h[Math.max(0,i-1)])+ctx.lineWidth/2);}}
+    if(s>=0)ctx.lineTo(SX(W.x0+i*W.res),SY(W.h[i])+ctx.lineWidth/2);
+  }
+  if(cur>=0)ctx.stroke();
+  // guide + markers
+  const D=W.dest;
+  if(OPTS.guide&&F&&S.mode!=='hub'){
+    const tg2=Math.tan(GUIDE_DEG*Math.PI/180),xa=W.aimX,xs=xa-1900;
+    ctx.save();ctx.setLineDash([8,8]);ctx.strokeStyle='rgba(230,226,216,.6)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(SX(xs),SY(D.elev+(xa-xs)*tg2));ctx.lineTo(SX(xa),SY(D.elev+0.5));ctx.stroke();ctx.restore();
+  }
+  for(const s of W.strips){
+    if(s.x1<xl||s.x0>xr)continue;
+    const y=SY(s.elev),mh=Math.max(4,sc*1.6),mw=Math.max(3,sc*1.4);
+    ctx.fillStyle='#E6E2D8';
+    for(const mx of [s.x0,s.x0+8,s.x1-8,s.x1]){ctx.fillRect(SX(mx)-mw/2,y-mh,mw,mh);}
+    if(s===D){ctx.fillStyle='#C4A35A';ctx.beginPath();ctx.moveTo(SX(s.x0-14),y);ctx.lineTo(SX(s.x0-10),y-mh*1.4);ctx.lineTo(SX(s.x0-6),y);ctx.fill();
+      ctx.fillStyle='rgba(230,226,216,.85)';ctx.fillRect(SX(W.aimX-6),y-1,Math.max(6,12*sc),Math.max(2,sc*0.6));}
+  }
+  // destination name tag (reinforces the landmark read; hidden once close)
+  if(F&&S.mode!=='hub'){const sx0=SX(D.x0+40),sx=clamp(sx0,70,Wc-70),sy=SY(D.elev);
+    if(sx0>-20&&sx0<Wc+200&&cam.scale<1.6){ctx.font='12px sans-serif';ctx.textAlign='center';ctx.textBaseline='alphabetic';
+      ctx.fillStyle='rgba(42,48,54,.7)';const tw=ctx.measureText(D.name).width+12;ctx.fillRect(sx-tw/2,sy-44,tw,17);
+      ctx.fillStyle='#E6E2D8';ctx.fillText(D.name,sx,sy-31);ctx.fillRect(sx-0.5,sy-27,1,14);ctx.textAlign='left';}}
+  // props
+  drawHangar(W);
+  for(const pr of W.R.props){
+    if(pr.x!=null&&(pr.x<xl-60||pr.x>xr+60))continue;
+    if(pr.k==='windsock')drawWindsock(pr.x,W.groundAt(pr.x),pr.big);
+    if(pr.k==='drums')drawDrums(pr.x,W.groundAt(pr.x));
+    if(pr.k==='dock')drawDock(pr.x,W);
+  }
+  drawWindsock(620,60,0);
+  // trees
+  let lo=0,hi=W.trees.length;
+  while(lo<hi){const m=(lo+hi)>>1;if(W.trees[m].x<xl-10)lo=m+1;else hi=m;}
+  for(let i=lo;i<W.trees.length&&W.trees[i].x<xr+10;i++){const t=W.trees[i];drawSpruce(SX(t.x),SY(t.base)+2,t.h*sc,t.w*sc,t.shade);}
+}
+function drawHangar(W){
+  const x0=-82,x1=-28,gy=60,hgt=10,sc=cam.scale;
+  if(SX(x1)<-10||SX(x0)>Wc+10)return;
+  const a=SX(x0),b=SX(x1),y=SY(gy),top=SY(gy+hgt),arch=SY(gy+hgt+2.2);
+  ctx.fillStyle='#9AA0A4';ctx.beginPath();ctx.moveTo(a,y);ctx.lineTo(a,top);ctx.quadraticCurveTo((a+b)/2,arch-(top-arch),b,top);ctx.lineTo(b,y);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(70,76,80,.35)';ctx.lineWidth=1;
+  for(let x=x0+1.5;x<x1;x+=1.5){ctx.beginPath();ctx.moveTo(SX(x),y);ctx.lineTo(SX(x),top+2);ctx.stroke();}
+  // sky-blue door panel (the Willow tell)
+  ctx.fillStyle='#6A8FA8';ctx.fillRect(SX(x1-20),SY(gy+7.5),18*sc,7.5*sc);
+  ctx.strokeStyle='rgba(42,48,54,.35)';ctx.beginPath();ctx.moveTo(SX(x1-11),SY(gy+7.5));ctx.lineTo(SX(x1-11),y);ctx.stroke();
+  // sign
+  ctx.fillStyle='#4F5E48';ctx.fillRect(SX(x0+6),SY(gy+9.3),22*sc,2.3*sc);
+  if(sc>2.2){ctx.fillStyle='#E6E2D8';ctx.font=`${Math.round(1.6*sc)}px sans-serif`;ctx.textBaseline='middle';ctx.fillText('WILLOW STATION',SX(x0+7),SY(gy+8.15));}
+  // drum + ladder
+  drawDrums(x0-4,gy,2);
+  ctx.strokeStyle='#7B6A55';ctx.lineWidth=Math.max(1,sc*0.25);ctx.beginPath();ctx.moveTo(SX(x0+3),y);ctx.lineTo(SX(x0+4.5),SY(gy+5));ctx.moveTo(SX(x0+4),y);ctx.lineTo(SX(x0+5.5),SY(gy+5));ctx.stroke();
+}
+function drawWindsock(x,gy,big){
+  const sc=cam.scale,h=7,px=SX(x),py=SY(gy),ty=SY(gy+h);
+  ctx.strokeStyle='#5A5F62';ctx.lineWidth=Math.max(1.5,sc*0.25);ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px,ty);ctx.stroke();
+  const wx=F?F.wx:WX.WX_CLEAR;const xw=F?F.xw:0;const t=clock;
+  const strength=clamp((wx.headwind+xw*6)/6,0.25,1)*(0.85+0.15*Math.sin(t*3.1+x));
+  const len=(big?4.2:3.2)*sc*(xw>0?0.75:1),droop=(1-strength)*1.1;
+  const ang=Math.PI+droop*(xw>0?0.4:1)+0.06*Math.sin(t*5+x);
+  const ex=px+Math.cos(ang)*len,ey=ty-Math.sin(ang)*len;
+  const r0=Math.max(2.5,0.55*sc)*(xw>0?1.5:1),r1=r0*0.45;
+  const nx=-Math.sin(ang),ny=Math.cos(ang);
+  ctx.fillStyle='#D9893F';ctx.beginPath();ctx.moveTo(px+nx*r0,ty+ny*r0);ctx.lineTo(ex+nx*r1,ey+ny*r1);ctx.lineTo(ex-nx*r1,ey-ny*r1);ctx.lineTo(px-nx*r0,ty-ny*r0);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#E6E2D8';ctx.lineWidth=Math.max(1,len*0.12);
+  for(const f of [0.33,0.66]){const cx=lerp(px,ex,f),cy=lerp(ty,ey,f),r=lerp(r0,r1,f);ctx.beginPath();ctx.moveTo(cx+nx*r,cy+ny*r);ctx.lineTo(cx-nx*r,cy-ny*r);ctx.stroke();}
+  if(xw>0){ctx.strokeStyle='#B06C2E';ctx.lineWidth=1.2;ctx.beginPath();ctx.ellipse(px,ty,r0*0.6,r0,0,0,7);ctx.stroke();}
+}
+function drawDrums(x,gy,n){
+  const sc=cam.scale,cols=['#8E5B43','#A65D4E','#6A8FA8','#8E5B43','#7D5440'];n=n||5;
+  for(let i=0;i<n;i++){const dx=x+i*0.8-(i>2?2.0:0),dy=gy+(i>2?0.9:0);ctx.fillStyle=cols[i%5];ctx.fillRect(SX(dx),SY(dy+0.9),Math.max(2,0.7*sc),Math.max(3,0.9*sc));}
+}
+function drawDock(x,W){
+  const sc=cam.scale,lvl=W.waterAt(x+10);if(lvl<-1e8)return;
+  ctx.fillStyle='#7B6A55';ctx.fillRect(SX(x-2),SY(lvl+0.7),30*sc,Math.max(2,0.4*sc));
+  ctx.fillStyle='#5E5142';for(let k=0;k<5;k++)ctx.fillRect(SX(x+k*7),SY(lvl+0.7),Math.max(1,0.3*sc),Math.max(2,1.2*sc));
+}
+function drawCabins(x,W){
+  const sc=cam.scale;
+  const defs=[[0,6,4,'#6E5846'],[14,5,3.6,'#7A6450'],[40,7,4.2,'#665243'],[112,5.5,3.8,'#7A6450'],[128,6,4,'#6E5846']];
+  for(const d of defs){const cx=x+d[0],gy=W.groundAt(cx)+3;
+    ctx.fillStyle=d[3];ctx.fillRect(SX(cx),SY(gy+d[2]),d[1]*sc,(d[2]+4)*sc);
+    ctx.fillStyle='#8E9599';ctx.beginPath();ctx.moveTo(SX(cx-0.6),SY(gy+d[2]));ctx.lineTo(SX(cx+d[1]/2),SY(gy+d[2]+2.2));ctx.lineTo(SX(cx+d[1]+0.6),SY(gy+d[2]));ctx.fill();}
+  // tall false-front store (Grayling tell)
+  const sx=x+70,gy=W.groundAt(sx)+3;
+  ctx.fillStyle='#8C7A62';ctx.beginPath();ctx.moveTo(SX(sx),SY(gy-4));ctx.lineTo(SX(sx),SY(gy+8.5));ctx.lineTo(SX(sx+2),SY(gy+8.5));ctx.lineTo(SX(sx+2),SY(gy+9.5));ctx.lineTo(SX(sx+8),SY(gy+9.5));ctx.lineTo(SX(sx+8),SY(gy+8.5));ctx.lineTo(SX(sx+10),SY(gy+8.5));ctx.lineTo(SX(sx+10),SY(gy-4));ctx.fill();
+  ctx.fillStyle='#E6E2D8';ctx.fillRect(SX(sx+1),SY(gy+7.6),8*sc,1.6*sc);
+  if(sc>2.2){ctx.fillStyle='#4F4536';ctx.font=`${Math.round(1.2*sc)}px sans-serif`;ctx.textBaseline='middle';ctx.fillText('STORE',SX(sx+2.6),SY(gy+6.8));}
+  // thin smoke
+  for(let k=0;k<6;k++){const f=((clock*0.25+k/6)%1);ctx.fillStyle=`rgba(210,214,216,${0.35*(1-f)})`;ctx.beginPath();ctx.arc(SX(x+3+f*6),SY(W.groundAt(x)+9+f*22),(1+f*3)*sc,0,7);ctx.fill();}
+}
+function drawPlane(sx,sy,theta,ps,o){
+  ctx.save();ctx.translate(sx,sy);ctx.rotate(-theta);ctx.scale(ps,-ps);
+  // wheel + leg
+  ctx.strokeStyle='#3A3F42';ctx.lineWidth=0.18;ctx.beginPath();ctx.moveTo(0,0.5);ctx.lineTo(0.5,1.4);ctx.stroke();
+  ctx.fillStyle='#2B2D2E';ctx.beginPath();ctx.arc(0,0.5,0.5,0,7);ctx.fill();ctx.fillStyle='#6E7276';ctx.beginPath();ctx.arc(0,0.5,0.18,0,7);ctx.fill();
+  // tailwheel
+  ctx.beginPath();ctx.moveTo(-4.7,1.9);ctx.lineTo(-4.9,1.45);ctx.stroke();ctx.fillStyle='#2B2D2E';ctx.beginPath();ctx.arc(-4.9,1.4,0.18,0,7);ctx.fill();
+  // fuselage
+  ctx.fillStyle='#E6E2D8';ctx.beginPath();ctx.moveTo(2.7,1.5);ctx.lineTo(2.75,2.25);ctx.lineTo(1.5,2.55);ctx.lineTo(1.15,3.05);ctx.lineTo(-1.1,3.1);ctx.lineTo(-5.0,2.55);ctx.lineTo(-5.35,2.3);ctx.lineTo(-5.0,2.0);ctx.lineTo(-1.2,1.3);ctx.lineTo(0.9,1.15);ctx.closePath();ctx.fill();
+  // stripe
+  ctx.fillStyle='#6A8FA8';ctx.beginPath();ctx.moveTo(2.72,1.85);ctx.lineTo(-5.2,2.3);ctx.lineTo(-5.15,2.12);ctx.lineTo(2.71,1.62);ctx.closePath();ctx.fill();
+  // cowl
+  ctx.fillStyle='#5F6B72';ctx.beginPath();ctx.moveTo(2.7,1.5);ctx.lineTo(2.75,2.25);ctx.lineTo(1.9,2.4);ctx.lineTo(1.8,1.38);ctx.closePath();ctx.fill();
+  // windows
+  ctx.fillStyle='#3A4650';ctx.beginPath();ctx.moveTo(1.35,2.55);ctx.lineTo(1.05,2.95);ctx.lineTo(0.05,2.95);ctx.lineTo(0.05,2.45);ctx.closePath();ctx.fill();
+  ctx.fillRect(-1.2,2.45,1.0,0.48);
+  // tail fin
+  ctx.fillStyle='#D9D4C6';ctx.beginPath();ctx.moveTo(-4.0,2.6);ctx.lineTo(-4.9,3.75);ctx.lineTo(-5.45,3.75);ctx.lineTo(-5.35,2.35);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#6A8FA8';ctx.fillRect(-5.42,3.45,0.7,0.3);
+  ctx.strokeStyle='#8A8F92';ctx.lineWidth=0.12;ctx.beginPath();ctx.moveTo(-4.3,2.45);ctx.lineTo(-5.6,2.4);ctx.stroke();
+  // wing + strut
+  ctx.fillStyle='#C9C4B6';ctx.beginPath();ctx.moveTo(1.4,3.08);ctx.lineTo(1.3,3.32);ctx.lineTo(-1.1,3.28);ctx.lineTo(-1.2,3.1);ctx.closePath();ctx.fill();
+  if(o.flaps){ctx.fillStyle='#A9A496';ctx.beginPath();ctx.moveTo(-1.15,3.12);ctx.lineTo(-1.8,2.7);ctx.lineTo(-1.6,2.62);ctx.lineTo(-0.9,3.08);ctx.closePath();ctx.fill();}
+  ctx.strokeStyle='#8A8F92';ctx.lineWidth=0.12;ctx.beginPath();ctx.moveTo(0.3,3.08);ctx.lineTo(-0.3,1.45);ctx.stroke();
+  // prop
+  if(o.prop>0){ctx.fillStyle=`rgba(210,214,216,${0.25+0.25*o.prop})`;ctx.beginPath();ctx.ellipse(2.85,1.88,0.12,1.15,0,0,7);ctx.fill();}
+  else{ctx.strokeStyle='#3A3F42';ctx.lineWidth=0.16;ctx.beginPath();ctx.moveTo(2.85,0.9);ctx.lineTo(2.85,2.85);ctx.stroke();}
+  ctx.fillStyle='#4C565C';ctx.beginPath();ctx.arc(2.85,1.88,0.16,0,7);ctx.fill();
+  ctx.restore();
+}
+let hudInsetBottom=null; // BPA-03: set by layoutHUD so the drift inset sits clear of the touch controls
+function drawInset(){
+  const p=F.p,W=F.W,D=W.dest;
+  if(!F.gatePassed||p.x>D.x1+20||F.ended&&!p.onGround)return;
+  const bw=116,bh=128,bx=Wc/2-bw/2,by=hudInsetBottom!=null?hudInsetBottom-bh:Hc-bh-40;
+  ctx.fillStyle='rgba(42,48,54,.85)';ctx.beginPath();ctx.roundRect?ctx.roundRect(bx,by,bw,bh,8):ctx.rect(bx,by,bw,bh);ctx.fill();
+  const top=by+14,bot=by+bh-26,range=GATE_DIST+(D.x1-D.x0),ky=(bot-top)/range,cx=bx+bw/2;
+  const yOf=x=>bot-(x-(D.x0-GATE_DIST))*ky;
+  // channels
+  ctx.fillStyle='rgba(86,97,95,.9)';ctx.fillRect(bx+6,top,bw-12,bot-top);
+  ctx.fillStyle='#D3CBB5';ctx.fillRect(cx-D.half,yOf(D.x1),D.half*2,yOf(D.x0)-yOf(D.x1));
+  ctx.fillStyle='#4A5644';ctx.fillRect(bx+6,yOf(D.x0-120),bw-12,yOf(D.x0-340)-yOf(D.x0-120));
+  ctx.strokeStyle='rgba(230,226,216,.5)';ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(cx,yOf(D.x0)+2);ctx.lineTo(cx,bot);ctx.stroke();ctx.setLineDash([]);
+  // plane marker
+  const px=clamp(cx+p.off,bx+8,bx+bw-8),py=clamp(yOf(p.x),top,bot);
+  ctx.fillStyle=Math.abs(p.off)>D.half?'#C98475':'#E6E2D8';
+  ctx.beginPath();ctx.moveTo(px,py-6);ctx.lineTo(px-4,py+4);ctx.lineTo(px+4,py+4);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#E6E2D8';ctx.font='11px sans-serif';ctx.textBaseline='alphabetic';
+  if(F.xw>0){
+    // wind arrow from the left
+    ctx.strokeStyle='#D9893F';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(bx+10,by+9);ctx.lineTo(bx+30,by+9);ctx.lineTo(bx+25,by+5);ctx.moveTo(bx+30,by+9);ctx.lineTo(bx+25,by+13);ctx.stroke();
+    ctx.fillText('wind',bx+34,by+12);
+    const o=p.off;ctx.fillStyle=Math.abs(o)>D.half*0.6?'#C4A35A':'#E6E2D8';
+    ctx.fillText(Math.abs(o)<1?'On centerline':('Drift '+(o>0?'R ':'L ')+Math.abs(o).toFixed(0)+' m'),bx+8,by+bh-9);
+  }else{ctx.fillText('Final \u00b7 '+Math.max(0,Math.round(D.x0-p.x))+' m',bx+8,by+bh-9);}
+}
+function drawWeatherFx(dt,wx){
+  const p=F?F.p:null;
+  if(wx.rain){
+    ctx.strokeStyle='rgba(215,222,228,.45)';ctx.lineWidth=1;ctx.beginPath();
+    const vx=p?(-p.vx*0.004-0.08):-0.08;
+    for(const r of rainP){r.y+=dt*1.6*r.l;r.x+=dt*vx;if(r.y>1){r.y-=1;r.x=Math.random();}if(r.x<0)r.x+=1;
+      const x=r.x*Wc,y=r.y*Hc;ctx.moveTo(x,y);ctx.lineTo(x-4,y+12*r.l);}
+    ctx.stroke();
+  }
+  if(F&&F.xw>0){
+    const near=clamp(1-(Math.abs(p.x-F.W.dest.x0)-300)/2500,0,1);
+    if(near>0){ctx.fillStyle=`rgba(225,228,230,${0.4*near})`;const gyy=SY(F.W.groundAt(p.x));
+      for(const d of driftP){d.x+=dt*(0.05+0.1*d.s)-dt*p.vx*0.003;d.y+=dt*0.03*d.s;if(d.x>1)d.x-=1;if(d.x<0)d.x+=1;if(d.y>1)d.y-=1;
+        ctx.fillRect(d.x*Wc,gyy-60+d.y*90,2+d.s*5,1.4);}
+    }
+  }
+  if(F&&F.wx.ceiling){const over=F.p.y-(F.wx.ceiling-8);if(over>0){ctx.fillStyle=`rgba(160,167,172,${clamp(over/25,0,0.9)})`;ctx.fillRect(0,0,Wc,Hc);}}
+}
+function render(dt){
+  clock+=dt;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  let W,wx,p;
+  if(F&&(S.mode==='flight'||S.mode==='debrief'||S.mode==='pause')){
+    W=F.W;wx=F.wx;p=F.p;
+    const agl=Math.max(0,p.y-W.groundAt(p.x));
+    let ts=clamp(Hc*0.40/(agl+45),0.45,3.2),ax=0.42;
+    if(F.gatePassed&&p.x<W.dest.x1){const d=Math.max(0,W.aimX-p.x);ts=Math.min(ts,Math.max(0.42,Wc*0.55/(d+140)));ax=lerp(0.42,0.3,clamp(d/600,0,1));}
+    const look=clamp(p.vx,0,70)*1.0;
+    const k=cam.init?1:1-Math.exp(-dt*1.8);
+    cam.scale=lerp(cam.scale,ts,k);cam.ax=lerp(cam.ax,ax,k);cam.x=lerp(cam.x,p.x+look,cam.init?1:1-Math.exp(-dt*4));cam.y=p.y;
+    const ay=Math.max(0.3,0.7-agl*cam.scale/Hc);cam.ay=cam.init?ay:lerp(cam.ay,ay,1-Math.exp(-dt*3));cam.init=false;
+  }else{
+    W=getWorld('devils_elbow_bar');wx=WX.WX_CLEAR;p=null;
+    cam.scale=clamp(Math.min(Hc/85,Wc/120),2.4,7);cam.ax=0.5;cam.ay=0.66;cam.x=-30+Math.sin(clock*0.05)*6;cam.y=66;
+  }
+  let shx=0,shy=0;
+  if(F&&F.shake>0){F.shake=Math.max(0,F.shake-dt);shx=(Math.random()-0.5)*14*F.shake;shy=(Math.random()-0.5)*14*F.shake;}
+  ctx.save();ctx.translate(shx,shy);
+  drawSky(wx);drawParallax(wx,W);drawWorld(W,wx,dt);
+  const ps=clamp(cam.scale*1.5,Hc/140,Hc/90);
+  if(p){
+    drawPlane(SX(p.x),SY(p.y),p.theta,p.onGround?Math.max(ps,cam.scale):ps,{flaps:p.flaps,prop:p.engine?(0.3+p.thr):0});
+    // effects
+    ctx.fillStyle='rgba(185,179,163,.7)';
+    for(const e of F.effects){e.life-=dt;e.x+=e.vx*dt;e.y+=e.vy*dt;e.vy-=4*dt;ctx.globalAlpha=clamp(e.life,0,1)*0.7;ctx.beginPath();ctx.arc(SX(e.x),SY(e.y),e.r*cam.scale,0,7);ctx.fill();}
+    ctx.globalAlpha=1;F.effects=F.effects.filter(e=>e.life>0);
+  }else{
+    drawPlane(SX(8),SY(60),0.16,cam.scale,{flaps:false,prop:0});
+  }
+  drawWeatherFx(dt,wx);
+  ctx.restore();
+  if(p&&S.mode==='flight')drawInset();
+}
+// ---------------------------------------------------------------- UI
+const S={mode:'hub',job:null,cargo:0,fuel:60};
+let paused=false,touchCapable=false;
+try{touchCapable=window.matchMedia('(pointer:coarse)').matches||('ontouchstart' in window);}catch(e){}
+const ICON={
+  LOC_BAR:'<svg viewBox="0 0 46 34" class="ico"><rect width="46" height="34" rx="4" fill="#56615F"/><path d="M2 22 C12 18 20 26 30 21 S42 18 46 20 V34 H0Z" fill="#6E7A78"/><path d="M6 20 C14 14 26 13 40 16 C30 21 18 22 6 20Z" fill="#D3CBB5"/><line x1="33" y1="16" x2="33" y2="7" stroke="#2A3036" stroke-width="1.2"/><path d="M33 7 L40 8.5 L40 10 L33 10Z" fill="#D9893F"/><rect x="12" y="15" width="2" height="3" fill="#8E5B43"/><rect x="15" y="15" width="2" height="3" fill="#A65D4E"/></svg>',
+  LOC_VILLAGE:'<svg viewBox="0 0 46 34" class="ico"><rect width="46" height="34" rx="4" fill="#8A9A72"/><rect x="0" y="25" width="46" height="5" fill="#A3A7AA"/><rect x="5" y="15" width="7" height="8" fill="#6E5846"/><path d="M4 15 L8.5 11 L13 15Z" fill="#8E9599"/><path d="M17 23 V9 H19 V7 H27 V9 H29 V23Z" fill="#8C7A62"/><rect x="18.5" y="11" width="9" height="2.5" fill="#E6E2D8"/><rect x="32" y="16" width="7" height="7" fill="#7A6450"/><path d="M31 16 L35.5 12 L40 16Z" fill="#8E9599"/><circle cx="9" cy="7" r="2" fill="#D4D8DC" opacity=".7"/></svg>',
+  LOC_LAKE:'<svg viewBox="0 0 46 34" class="ico"><rect width="46" height="34" rx="4" fill="#6B7A5C"/><ellipse cx="25" cy="21" rx="15" ry="8" fill="#2C3331"/><rect x="8" y="20" width="9" height="1.6" fill="#7B6A55"/><path d="M5 18 L8 8 L11 18Z M37 17 L40 7 L43 17Z M30 12 L33 3 L36 12Z M14 12 L17 3 L20 12Z" fill="#3E4A3B"/></svg>',
+  LOC_HOME:'<svg viewBox="0 0 46 34" class="ico"><rect width="46" height="34" rx="4" fill="#A8B8C4"/><path d="M6 28 V14 Q23 6 40 14 V28Z" fill="#9AA0A4"/><rect x="22" y="17" width="15" height="11" fill="#6A8FA8"/><rect x="0" y="28" width="46" height="6" fill="#8A9A72"/></svg>'
+};
+const WXICON={
+  WX_CLEAR:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="3.6"/><path d="M10 1.5v2.5M10 16v2.5M1.5 10H4M16 10h2.5M4 4l1.8 1.8M14.2 14.2L16 16M4 16l1.8-1.8M14.2 5.8L16 4"/></svg>',
+  WX_LOW_CEILING:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 11h10.5a3 3 0 0 0 0-6 4.5 4.5 0 0 0-8.6-.6A3.2 3.2 0 0 0 5 11z"/><path d="M2 14.5h16M5 18h10"/></svg>',
+  WX_CROSSWIND:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 7h10a2.5 2.5 0 1 0-2.5-2.5M2 11h14a2.5 2.5 0 1 1-2.5 2.5M2 15h7"/></svg>',
+  WX_LIGHT_RAIN:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 10h10.5a3 3 0 0 0 0-6 4.5 4.5 0 0 0-8.6-.6A3.2 3.2 0 0 0 5 10z"/><path d="M6 13l-1 3M10 13l-1 3M14 13l-1 3"/></svg>'
+};
+function chip(wxId){return `<span class="chip">${WXICON[wxId]}${WX[wxId].label}</span>`;}
+function locOf(job){return ROUTES[job.to].strip.loc;}
+function payText(job){return job.type==='freight'?`from ${money(job.payBase)}`:money(job.payBase);}
+function show(id){for(const el of document.querySelectorAll('.screen'))el.classList.remove('on');if(id)$(id).classList.add('on');}
+function toast(msg,ms){const t=$('#toast');t.innerHTML=msg;t.style.display='block';clearTimeout(toast._h);toast._h=setTimeout(()=>t.style.display='none',ms||3500);}
+
+function goBoard(){S.mode='hub';F=null;paused=false;show('#scrBoard');renderBoard();setFlightUI(false);}
+function renderBoard(){
+  $('#bCash').textContent=money(SAVE.cash);
+  $('#kbLegend').style.display='block';
+  $('#jobList').innerHTML=JOBS.map(job=>{
+    const done=SAVE.jobsCompleted.filter(j=>j===job.id).length;
+    const typeLbl={freight:'Freight',passengers:'Passengers',medevac:'Medevac'}[job.type];
+    return `<div class="card" tabindex="0" data-id="${job.id}">
+      <div class="row">${ICON[locOf(job)]}<div class="sp"><div class="t">${ROUTES[job.to].strip.name}</div><div class="meta">${typeLbl} \u00b7 ${job.cargoLine}</div></div><div class="pay">${payText(job)}</div></div>
+      <div class="meta" style="margin-top:7px">${job.hero?`<span class="tag hero">${job.hero}</span>`:''}${chip(job.wx)} ${job.timeLimitSec?`<span class="tag">\u23f1 ${mmss(job.timeLimitSec)}</span>`:''}<span class="tag">+${money(job.payBonusPerfect)} bonus</span>${done?`<span class="tag done">\u2713 flown ${done}\u00d7</span>`:''}</div>
+      <div class="soft">${SOFT_FAIL_LINE}</div></div>`;}).join('');
+  for(const el of document.querySelectorAll('#jobList .card')){
+    const go=()=>openPreflight(JOBS.find(j=>j.id===el.dataset.id));
+    el.addEventListener('click',go);el.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+  }
+}
+function openPreflight(job){
+  S.job=job;S.mode='pre';
+  const fixed=job.cargoFixed!=null;
+  S.cargo=fixed?job.cargoFixed:(S.lastCargo&&S.lastCargo[job.id])||job.cargoDefault;
+  S.fuel=(S.lastFuel&&S.lastFuel[job.id])||Math.min(140,Math.ceil((fuelNeed(getWorld(job.to))+15)/5)*5);
+  const W=getWorld(job.to);
+  const ridgeFt=Math.round((Math.max(...Array.from(W.h).slice(W.idx(700),W.idx(W.dest.x0-400)))-60)*FT/50)*50;
+  $('#preCard').innerHTML=`<div class="row">${ICON[locOf(job)]}<div class="sp"><div class="sub">${{freight:'Freight',passengers:'Passengers',medevac:'Medevac'}[job.type]}</div><h2 style="margin:0">${job.title}</h2></div></div>
+    <p>${job.cargoLine}.</p><p class="radio">\u201c${job.notes}\u201d</p>
+    <p>${chip(job.wx)} <span class="sub">${WX[job.wx].desc}</span></p>
+    <div class="stats"><div><span>Route</span><br>${(W.distance/1000).toFixed(1)} km, high ground ~${ridgeFt} ft above Willow</div><div><span>Strip</span><br>${W.dest.x1-W.dest.x0} m gravel, ${W.dest.half*2} m wide</div>
+    ${job.timeLimitSec?`<div><span>Time limit</span><br>${mmss(job.timeLimitSec)} wheels-rolling to stopped</div>`:''}<div><span>Bonus</span><br>${money(job.payBonusPerfect)} for soft + short + centered</div></div>
+    <div class="softline">${SOFT_FAIL_LINE}</div>`;
+  const sl=$('#slCargo');
+  $('#cargoWrap').style.display=fixed?'none':'block';
+  $('#cargoFixed').textContent=fixed?`Load: ${job.cargoFixed} kg (${job.type==='medevac'?'medic and kit':job.passengerCount+' passengers with gear'}) \u2014 fixed for this job.`:'';
+  if(!fixed){sl.min=job.cargoMin;sl.max=job.cargoMax;sl.value=S.cargo;}
+  $('#slFuel').value=S.fuel;
+  updatePre();show('#scrPre');
+}
+function climbFpm(m){
+  const CL=PHYS.CL0+PHYS.CLa*0.12,V=Math.sqrt(m*PHYS.g/(0.5*PHYS.rho*PHYS.S*CL));
+  const D=0.5*PHYS.rho*V*V*PHYS.S*(PHYS.CD0+PHYS.k*CL*CL),T=PHYS.T0*Math.max(0.35,1-V/PHYS.Vt);
+  return (T-D)*V/(m*PHYS.g)*196.85;
+}
+function updatePre(){
+  const job=S.job,W=getWorld(job.to);
+  if(job.cargoFixed==null)S.cargo=+$('#slCargo').value;
+  S.fuel=+$('#slFuel').value;
+  const m=massOf(job,S.cargo,S.fuel),over=m-PLANE.maxTakeoffMassKg,need=fuelNeed(W),res=12;
+  $('#vCargo').textContent=S.cargo+' kg';$('#vFuel').textContent=S.fuel+' L';$('#vWt').textContent=Math.round(m)+' kg';
+  const wb=$('#wtBar');wb.style.width=clamp(m/PLANE.maxTakeoffMassKg*100,0,100)+'%';wb.className=over>0?'bad':(m>1040?'warn':'');
+  const fb=$('#fuelBar');fb.style.width=(S.fuel/140*100)+'%';fb.className=S.fuel<need?'bad':(S.fuel<need+res?'warn':'');
+  $('#fuelNeedMk').style.left=clamp((need+res)/140*100,0,99)+'%';
+  const c=climbFpm(m),cl=c>=950?['ok','strong']:c>=780?['warn','fair \u2014 climb early']:['bad','sluggish \u2014 climb right away'];
+  const pay=jobPay(job,S.cargo);
+  $('#preStats').innerHTML=`<div><span>Stall speed</span><br>${Math.round(stallKts(m,false))} kts clean \u00b7 ${Math.round(stallKts(m,true))} with flaps</div>
+    <div><span>Full-power climb</span><br><b class="${cl[0]}">${Math.round(c/10)*10} fpm</b> (${cl[1]})</div>
+    <div><span>Fuel</span><br><b class="${S.fuel<need?'bad':S.fuel<need+res?'warn':'ok'}">${S.fuel} L</b> aboard \u00b7 route needs ~${need} L + ${res} L reserve</div>
+    <div><span>Pay</span><br>${money(pay)} + ${money(job.payBonusPerfect)} bonus</div>`;
+  let w='';
+  if(over>0)w=`<div class="tip"><b>Over max takeoff weight by ${Math.round(over)} kg.</b> Take off some cargo or fuel \u2014 the Northwind won\u2019t leave the gravel like this.</div>`;
+  else if(S.fuel<need)w=`<div class="tip">Not enough fuel for the route. You can go, but the engine will quit short of the strip.</div>`;
+  $('#preWarn').innerHTML=w;
+  $('#btnFly').disabled=over>0;
+}
+$('#slCargo').addEventListener('input',updatePre);$('#slFuel').addEventListener('input',updatePre);
+$('#preBack').onclick=$('#preBack2').onclick=goBoard;
+$('#btnFly').onclick=()=>{
+  if(massOf(S.job,S.cargo,S.fuel)>PLANE.maxTakeoffMassKg)return;
+  S.lastCargo=S.lastCargo||{};S.lastFuel=S.lastFuel||{};S.lastCargo[S.job.id]=S.cargo;S.lastFuel[S.job.id]=S.fuel;
+  audioInit();beginFlight();
+};
+function beginFlight(){startFlight(S.job,S.cargo,S.fuel);S.mode='flight';paused=false;show(null);setFlightUI(true);layoutHUD();}
+function setFlightUI(on){
+  $('#hud').classList.toggle('on',on);
+  $('#touch').classList.toggle('on',on&&touchCapable);
+  $('#pauseBtn').style.display=on?'block':'none';
+  $('#hint').style.bottom=on&&touchCapable?'calc(12px + env(safe-area-inset-bottom))':'';if(!on){$('#hint').style.maxWidth='';const hc=$('#hc');hc.style.top=hc.style.left=hc.style.right=hc.style.transform=hc.style.minWidth=hc.style.maxWidth='';}
+  if(!on)$('#rotate').style.display='none';
+}
+// BPA-03: keep HUD text, hints and the drift inset clear of the touch controls in both orientations.
+// The rotate hint now stays up for as long as a touch phone is held upright in flight (no 6 s timeout).
+function layoutHUD(){
+  const flight=S.mode==='flight'&&F,rot=$('#rotate'),hc=$('#hc'),hint=$('#hint'),warn=$('#warn'),grade=$('#grade');
+  if(!flight){hudInsetBottom=null;return;}
+  const R=el=>el.getBoundingClientRect(),tc=touchCapable;
+  const hl=R($('#hl')),hr=R($('#hr'));
+  // centre panel: keep it between the side panels; if there isn't room (portrait), drop it below them
+  const half=Math.min(Wc/2-hl.right,hr.left-Wc/2)-6,narrow=Wc<=600||2*half<180;
+  if(narrow&&Wc>600){hc.style.left=Math.round(hl.left)+'px';hc.style.right=Math.round(Wc-hr.right)+'px';hc.style.transform='none';hc.style.maxWidth='none';hc.style.minWidth='0';}
+  else if(!narrow){hc.style.left=hc.style.right=hc.style.transform=hc.style.minWidth='';hc.style.maxWidth=Math.round(Math.min(0.46*Wc,2*half))+'px';}
+  else{hc.style.left=hc.style.right=hc.style.transform=hc.style.minWidth=hc.style.maxWidth='';}
+  hc.style.top=narrow?Math.round(Math.max(hl.bottom,hr.bottom)+6)+'px':'';
+  let y=narrow?R(hc).bottom+8:Math.max(hl.bottom,hr.bottom,R(hc).bottom)+8;
+  // touch controls: hint and drift inset go between stick and throttle (landscape) or above them (portrait)
+  let insetTop=Infinity;
+  if(tc){
+    const st=R($('#stick')),th=R($('#thrWrap')),thLbl=th.top-20;
+    const ctlTop=Math.min(st.top,thLbl),gap=th.left-st.right;
+    if(gap>=220){hint.style.bottom='calc(12px + env(safe-area-inset-bottom))';hint.style.maxWidth=Math.round(gap-16)+'px';hudInsetBottom=Hc-40;}
+    else{hint.style.bottom=Math.round(Hc-ctlTop+8)+'px';hint.style.maxWidth='calc(100vw - 20px)';
+      const ht=hint.style.display!=='none'?R(hint).height:0;hudInsetBottom=ctlTop-8-(ht?ht+8:0);}
+    if(F.gatePassed&&!F.ended)insetTop=hudInsetBottom-128;
+  }else{hint.style.bottom='';hint.style.maxWidth='';hudInsetBottom=null;}
+  // rotate hint: stays up while a touch phone is upright in flight; yields to the drift inset on very short screens
+  let showRot=tc&&Hc>Wc;
+  if(showRot){rot.style.display='block';rot.style.top=Math.round(y)+'px';const rb=R(rot).bottom;if(rb+6>insetTop)showRot=false;else y=rb+8;}
+  if(!showRot){rot.style.display='none';rot.style.top='';}
+  if(narrow){grade.style.top=Math.round(y)+'px';warn.style.top=Math.round(y+46)+'px';}else{grade.style.top='';warn.style.top='';}
+}
+window.addEventListener('resize',()=>{if(S.mode==='flight')layoutHUD();});
+// ---------------------------------------------------------------- debrief
+function computePay(){
+  const r=F.result,job=F.job,base=jobPay(job,F.cargo);
+  if(r.ok){let pay=base,comfort=null;
+    if(job.type==='passengers'){comfort=F.touchdown.vs<PHYS.softVS?'Smooth \u2014 they barely noticed':'Bumpy \u2014 15% off the fare';if(F.touchdown.vs>=PHYS.softVS)pay=Math.round(base*0.85);}
+    return{pay,bonus:r.perfect?job.payBonusPerfect:0,comfort};}
+  // BPA-04: a fail never pays for undelivered cargo. Only a graded arrival at the destination strip (hard / drift /
+  // overrun) pays a small share of the base fare (no cargo pay); crashes, fuel-outs and medevac misses pay $0.
+  return{pay:r.arrived?Math.round(job.payBase*(job.softFailPayFraction||0)):0,bonus:0};
+}
+function showDebrief(){
+  S.mode='debrief';setFlightUI(false);
+  const r=F.result,job=F.job,D=F.W.dest,td=F.touchdown,pp=computePay();
+  const fpm=v=>Math.round(v*196.85)+' fpm';
+  let h='';
+  if(r.ok){
+    const lines={freight:'Unloaded on the gravel, signed the slip, and flew the empty plane home to Willow.',passengers:'Two happy cabin owners on the shore. Flew home to Willow in the drizzle.',medevac:'Patient aboard. Topped off from the drum cache and flew home to Willow on time.'};
+    const newPlaque=job.type==='medevac'&&!plaque().unlocked;
+    h=`<div class="sub">${job.title} \u00b7 debrief</div><div class="big">${r.perfect?'Short &amp; true.':'Down and stopped.'}</div>
+    <p class="radio">${lines[job.type]}</p>
+    <div class="kv"><span>Touchdown</span><span class="${td.vs<PHYS.softVS?'ok':'warn'}">${fpm(td.vs)} \u00b7 ${td.vs<PHYS.softVS?'soft':'firm'}</span></div>
+    <div class="kv"><span>Touched down past the threshold</span><span class="${r.short?'ok':'warn'}">${Math.round(td.x)} m ${r.short?'(short)':'(long)'}</span></div>
+    <div class="kv"><span>Stopped with gravel to spare</span><span>${Math.max(0,Math.round(r.stopMargin))} m</span></div>
+    ${F.xw>0?`<div class="kv"><span>Centerline at touchdown</span><span class="${r.centered?'ok':'warn'}">${Math.abs(td.off)<1?'on it':Math.abs(td.off).toFixed(0)+' m '+(td.off>0?'right':'left')}</span></div>`:''}
+    ${F.wx.ceiling?`<div class="kv"><span>Time in cloud</span><span class="${r.clear?'ok':'bad'}">${r.clear?'stayed under the gray':Math.round(r.cloudT)+' s \u2014 bonus lost'}</span></div>`:''}
+    <div class="kv"><span>Flight time</span><span>${mmss(F.t)}${job.timeLimitSec?' / '+mmss(job.timeLimitSec):''}</span></div>
+    ${pp.comfort?`<div class="kv"><span>Passenger comfort</span><span>${pp.comfort}</span></div>`:''}
+    <div class="kv"><span>Pay</span><span>${money(pp.pay)}</span></div>
+    <div class="kv"><span>Bonus</span><span class="${r.perfect?'ok':''}">${r.perfect?money(pp.bonus):r.clear===false?'lost \u2014 flew in cloud':'missed \u2014 needs soft, short and centered'}</span></div>
+    <div class="kv" style="font-weight:600"><span>Total</span><span>${money(pp.pay+pp.bonus)}</span></div>
+    ${!r.perfect?`<div class="tip">Tip: ${r.clear===false?'Stay under the cloud deck the whole way \u2014 flying in the gray costs the bonus even with a perfect landing.':!r.soft?'Flare a touch more in the last few feet for the soft grade.':!r.short?'Touch down in the first 45% of the strip \u2014 cross the trees on the line, then idle and flare.':'Keep the drift box dot inside the middle of the strip.'}</div>`:''}
+    ${newPlaque?'<div class="softline">First Medevac plaque earned. It\u2019ll be waiting on the hangar shelf.</div>':''}
+    <div class="row" style="margin-top:14px"><span class="sp"></span><button class="btn pri" id="dHome">Fly home to Willow</button></div>`;
+  }else{
+    const R=REASONS[r.reason];
+    h=`<div class="sub">${job.title} \u00b7 debrief</div><div class="big">Soft fail \u2014 ${R.title.toLowerCase()}</div>
+    <div class="softline">${SOFT_FAIL_LINE}</div>
+    ${td&&r.reason!=='trees'?`<div class="kv"><span>Touchdown</span><span>${fpm(td.vs)}</span></div>`:''}
+    ${r.vs?`<div class="kv"><span>Touchdown</span><span class="bad">${fpm(r.vs)}</span></div>`:''}
+    <div class="kv"><span>Flight time</span><span>${mmss(F.t)}${job.timeLimitSec?' / '+mmss(job.timeLimitSec):''}</span></div>
+    <div class="kv"><span>Partial pay if you head home</span><span class="${pp.pay?'':'bad'}">${money(pp.pay)}${pp.pay?' (base fare share, no cargo pay)':job.type==='medevac'?' \u2014 the run doesn\u2019t count':' \u2014 nothing delivered'}</span></div>
+    <div class="kv"><span>Bonus</span><span>lost</span></div>
+    <div class="tip"><b>Tip:</b> ${R.tip}</div>
+    <div class="row wrap" style="margin-top:14px">${F.snap&&r.reason!=='late'&&r.reason!=='fuel'?'<button class="btn pri" id="dRetry">Retry the approach</button>':''}<button class="btn ${F.snap&&r.reason!=='late'&&r.reason!=='fuel'?'':'pri'}" id="dAgain">Fly it again from Willow</button><button class="btn" id="dPartial">${pp.pay?'Take partial pay, head home':'Head home (no pay)'}</button></div>
+    <p class="sub">Retrying is free: pay only lands when you head home to Willow.</p>`;
+  }
+  $('#debrief').innerHTML=h;show('#scrDebrief');$('#scrDebrief').scrollTop=0;
+  const b=id=>document.getElementById(id);
+  if(b('dHome'))b('dHome').onclick=()=>commit(pp);
+  if(b('dPartial'))b('dPartial').onclick=()=>commit(pp);
+  if(b('dRetry'))b('dRetry').onclick=()=>{restoreSnap();S.mode='flight';show(null);setFlightUI(true);};
+  if(b('dAgain'))b('dAgain').onclick=()=>{beginFlight();};
+}
+function commit(pp){
+  const r=F.result,job=F.job,total=pp.pay+pp.bonus;
+  SAVE.cash+=total;
+  if(r.ok)SAVE.jobsCompleted.push(job.id);else SAVE.jobsSoftFailed.push(job.id);
+  let msg=`Saved at Willow Station hangar \u00b7 +${money(total)}`;
+  if(r.ok&&job.type==='medevac'&&!plaque().unlocked){plaque().unlocked=true;msg+='<br>First Medevac plaque earned \u2014 hang it in the hangar.';}
+  SAVE.log.unshift({id:job.id,title:job.title,ok:r.ok,perfect:!!r.perfect,reason:r.reason||null,pay:total,at:new Date().toISOString()});
+  SAVE.log=SAVE.log.slice(0,12);
+  writeSave();goBoard();toast(msg,4500);
+}
+// ---------------------------------------------------------------- hangar
+function hangarArt(){
+  return `<svg class="hgsvg" viewBox="0 0 320 170" role="img" aria-label="Willow Station hangar">
+  <defs><linearGradient id="hs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7A8FA0"/><stop offset="1" stop-color="#A8B8C4"/></linearGradient></defs>
+  <rect width="320" height="170" fill="url(#hs)"/>
+  <path d="M0 92 L40 70 L70 82 L110 58 L150 80 L200 62 L250 84 L290 66 L320 78 V120 H0Z" fill="#93A2AE"/><path d="M110 58 L118 63 L102 63Z M200 62 L208 67 L192 67Z" fill="#D4D8DC"/>
+  <path d="M0 108 Q80 96 160 104 T320 100 V170 H0Z" fill="#6B7A5C"/>
+  <path d="M0 150 Q90 128 180 140 T320 132 V145 Q240 150 180 154 T0 166Z" fill="#56615F"/>
+  <rect x="0" y="122" width="320" height="10" fill="#A3A7AA"/>
+  <path d="M40 124 V82 Q100 62 160 82 V124Z" fill="#9AA0A4"/>
+  ${Array.from({length:19},(_,i)=>`<line x1="${44+i*6}" y1="124" x2="${44+i*6}" y2="${86-Math.max(0,8-Math.abs(i-9))}" stroke="rgba(70,76,80,.3)"/>`).join('')}
+  <rect x="88" y="94" width="66" height="30" fill="#6A8FA8"/><line x1="121" y1="94" x2="121" y2="124" stroke="rgba(42,48,54,.35)"/>
+  <rect x="48" y="86" width="56" height="7" fill="#4F5E48"/><text x="76" y="91.8" font-size="5.4" fill="#E6E2D8" text-anchor="middle" font-family="sans-serif" letter-spacing=".6">WILLOW STATION</text>
+  <g transform="translate(218 104) scale(3.4 -3.4)">
+   <path d="M2.7 1.5 L2.75 2.25 L1.5 2.55 L1.15 3.05 L-1.1 3.1 L-5 2.55 L-5.35 2.3 L-5 2 L-1.2 1.3 L0.9 1.15Z" fill="#E6E2D8"/>
+   <path d="M2.72 1.85 L-5.2 2.3 L-5.15 2.12 L2.71 1.62Z" fill="#6A8FA8"/>
+   <path d="M2.7 1.5 L2.75 2.25 L1.9 2.4 L1.8 1.38Z" fill="#5F6B72"/>
+   <path d="M1.35 2.55 L1.05 2.95 L0.05 2.95 L0.05 2.45Z" fill="#3A4650"/>
+   <path d="M-4 2.6 L-4.9 3.75 L-5.45 3.75 L-5.35 2.35Z" fill="#D9D4C6"/>
+   <path d="M1.4 3.08 L1.3 3.32 L-1.1 3.28 L-1.2 3.1Z" fill="#C9C4B6"/>
+   <line x1="0.3" y1="3.08" x2="-0.3" y2="1.45" stroke="#8A8F92" stroke-width=".12"/>
+   <line x1="0" y1="0.5" x2="0.5" y2="1.4" stroke="#3A3F42" stroke-width=".18"/><circle cx="0" cy="0.5" r="0.5" fill="#2B2D2E"/><circle cx="-4.9" cy="1.4" r="0.18" fill="#2B2D2E"/>
+   <line x1="2.85" y1="0.9" x2="2.85" y2="2.85" stroke="#3A3F42" stroke-width=".16"/>
+  </g>
+  <rect x="30" y="116" width="5" height="8" fill="#8E5B43"/><rect x="24" y="116" width="5" height="8" fill="#6A8FA8"/>
+  <line x1="290" y1="124" x2="290" y2="98" stroke="#5A5F62" stroke-width="1.5"/><path d="M290 98 L276 101 L276 104 L290 103Z" fill="#D9893F"/>
+  </svg>`;
+}
+function renderHangar(){
+  $('#hgCash').textContent=money(SAVE.cash);
+  $('#hgArt').innerHTML=hangarArt();
+  const pq=plaque();
+  $('#plaqueSlot').innerHTML=pq.placed?`<div class="plaque"><div class="pt">First Medevac</div><div class="pf">Devil\u2019s Elbow, crosswind, on time.</div></div>`
+    :`<div class="slot">${pq.unlocked?'Plaque earned \u2014 ready to hang.':'Reserved for the First Medevac plaque.<br>Earned on your first successful medevac at Devil\u2019s Elbow.'}</div>`;
+  $('#plaqueAct').innerHTML=pq.unlocked&&!pq.placed?'<button class="btn pri" id="btnHang">Hang the First Medevac plaque</button>':'';
+  if($('#btnHang'))$('#btnHang').onclick=()=>{pq.placed=true;writeSave();renderHangar();toast('Plaque hung at Willow Station.');};
+  const done=SAVE.jobsCompleted.length,soft=SAVE.jobsSoftFailed.length;
+  $('#logbook').innerHTML=`<div class="kv"><span>Jobs completed</span><span>${done}</span></div><div class="kv"><span>Soft fails taken home</span><span>${soft}</span></div>
+    <div class="kv"><span>Last saved</span><span>${SAVE.savedAt?new Date(SAVE.savedAt).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'not yet'}</span></div>`+
+    (SAVE.log.length?'<h3>Recent flights</h3>'+SAVE.log.map(l=>`<div class="kv"><span>${l.title}</span><span class="${l.ok?'ok':'warn'}">${l.ok?(l.perfect?'short &amp; true':'landed'):'soft fail'} \u00b7 ${money(l.pay)}</span></div>`).join(''):'<p class="sub">No flights logged yet. Take a job off the board.</p>');
+}
+$('#tabHangar').onclick=()=>{S.mode='hangar';renderHangar();show('#scrHangar');};
+$('#tabJobs2').onclick=goBoard;
+$('#btnReset').onclick=()=>{if(confirm('Reset all progress on this device? Cash, logbook and the plaque will be cleared.')){SAVE=defaultSave();try{localStorage.removeItem(SAVE_KEY);}catch(e){}renderHangar();toast('Progress reset.');}};
+// options
+function syncOpts(){for(const [a,b,k] of [['#optGuide','#optGuide2','guide'],['#optInvert','#optInvert2','invert'],['#optSound','#optSound2','sound']]){$(a).checked=OPTS[k];$(b).checked=OPTS[k];}}
+for(const [a,k] of [['#optGuide','guide'],['#optInvert','invert'],['#optSound','sound'],['#optGuide2','guide'],['#optInvert2','invert'],['#optSound2','sound']]){
+  $(a).addEventListener('change',e=>{OPTS[k]=e.target.checked;saveOpts();syncOpts();if(k==='sound'&&OPTS.sound)audioInit();});
+}
+syncOpts();
+// pause
+function setPause(on){if(S.mode!=='flight'&&S.mode!=='pause')return;paused=on;S.mode=on?'pause':'flight';if(on){show('#pause');}else{show(null);}
+  for(const k in keys)keys[k]=false;}
+$('#pauseBtn').onclick=()=>setPause(true);
+$('#pResume').onclick=()=>setPause(false);
+$('#pRestart').onclick=()=>{paused=false;beginFlight();};
+$('#pAbandon').onclick=()=>{goBoard();toast('Job abandoned. Nothing lost.');};
+// ---------------------------------------------------------------- input wiring
+const GAME_KEYS=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyW','KeyS','KeyA','KeyD','KeyB','KeyF'];
+window.addEventListener('keydown',e=>{
+  if(S.mode==='flight'||S.mode==='pause'){
+    if(e.code==='KeyP'||e.code==='Escape'){setPause(!paused);e.preventDefault();return;}
+    if(S.mode==='flight'){
+      if(GAME_KEYS.includes(e.code)||e.code.startsWith('Shift'))e.preventDefault();
+      if(e.code==='KeyF'&&!e.repeat&&F&&!F.ended){F.p.flaps=!F.p.flaps;}
+      keys[e.code]=true;
+    }
+  }
+  if(e.code==='KeyM'&&!e.repeat){OPTS.sound=!OPTS.sound;saveOpts();syncOpts();if(OPTS.sound)audioInit();toast(OPTS.sound?'Sound on':'Sound off',1200);}
+});
+window.addEventListener('keyup',e=>{keys[e.code]=false;});
+window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;touchIn.stick=null;touchIn.sx=touchIn.sy=0;touchIn.brake=false;});
+window.addEventListener('touchstart',()=>{if(!touchCapable){touchCapable=true;if(S.mode==='flight')setFlightUI(true);}},{passive:true});
+const stick=$('#stick'),knob=$('#knob');
+function moveStick(e){const r=stick.getBoundingClientRect(),rad=r.width/2;let dx=(e.clientX-(r.left+rad))/rad,dy=(e.clientY-(r.top+rad))/rad;const l=Math.hypot(dx,dy);if(l>1){dx/=l;dy/=l;}
+  knob.style.transform=`translate(${dx*rad*0.6}px,${dy*rad*0.6}px)`;
+  const dz=v=>Math.abs(v)<0.1?0:(v-Math.sign(v)*0.1)/0.9;touchIn.sx=dz(dx);touchIn.sy=dz(-dy);}
+stick.addEventListener('pointerdown',e=>{e.preventDefault();stick.setPointerCapture(e.pointerId);touchIn.stick=e.pointerId;moveStick(e);});
+stick.addEventListener('pointermove',e=>{if(e.pointerId===touchIn.stick)moveStick(e);});
+const stickUp=e=>{if(e.pointerId===touchIn.stick){touchIn.stick=null;touchIn.sx=touchIn.sy=0;knob.style.transform='';}};
+stick.addEventListener('pointerup',stickUp);stick.addEventListener('pointercancel',stickUp);
+const thr=$('#thr');let thrId=null;
+function moveThr(e){const r=thr.getBoundingClientRect();if(F)F.p.thr=clamp(1-(e.clientY-r.top-8)/(r.height-16),0,1);}
+thr.addEventListener('pointerdown',e=>{e.preventDefault();thr.setPointerCapture(e.pointerId);thrId=e.pointerId;moveThr(e);});
+thr.addEventListener('pointermove',e=>{if(e.pointerId===thrId)moveThr(e);});
+const thrUp=e=>{if(e.pointerId===thrId)thrId=null;};thr.addEventListener('pointerup',thrUp);thr.addEventListener('pointercancel',thrUp);
+$('#tbFlaps').addEventListener('pointerdown',e=>{e.preventDefault();if(F&&!F.ended)F.p.flaps=!F.p.flaps;});
+const tbB=$('#tbBrake');
+tbB.addEventListener('pointerdown',e=>{e.preventDefault();tbB.setPointerCapture(e.pointerId);touchIn.brake=true;});
+for(const ev of ['pointerup','pointercancel','lostpointercapture'])tbB.addEventListener(ev,()=>{touchIn.brake=false;});
+document.addEventListener('contextmenu',e=>{if(S.mode==='flight')e.preventDefault();});
+// ---------------------------------------------------------------- audio (synthesized, no assets)
+let AC=null,engOsc,engGain,engLp,hornGain;
+function audioInit(){
+  if(AC||!OPTS.sound)return;
+  try{AC=new (window.AudioContext||window.webkitAudioContext)();
+    engOsc=AC.createOscillator();engOsc.type='sawtooth';engLp=AC.createBiquadFilter();engLp.type='lowpass';engLp.frequency.value=320;engGain=AC.createGain();engGain.gain.value=0;
+    engOsc.connect(engLp);engLp.connect(engGain);engGain.connect(AC.destination);engOsc.start();
+    const h=AC.createOscillator();h.type='square';h.frequency.value=420;hornGain=AC.createGain();hornGain.gain.value=0;h.connect(hornGain);hornGain.connect(AC.destination);h.start();
+  }catch(e){AC=null;}
+}
+function audioUpdate(){
+  if(!AC)return;const t=AC.currentTime;
+  const on=OPTS.sound&&S.mode==='flight'&&F&&!F.ended;
+  engGain.gain.setTargetAtTime(on&&F.p.engine?0.018+0.03*F.p.thr:0,t,0.12);
+  if(F)engOsc.frequency.setTargetAtTime(38+F.p.thr*34+F.V*0.25,t,0.15);
+  hornGain.gain.setTargetAtTime(on&&F.warn&&(Math.floor(clock*5)%2===0)?0.02:0,t,0.02);
+}
+// ---------------------------------------------------------------- HUD
+let hudTick=0;
+function updateHUD(){
+  if(!F||S.mode!=='flight')return;
+  if((hudTick++)%2)return;
+  const p=F.p,W=F.W,D=W.dest,job=F.job;
+  const agl=Math.max(0,p.y-W.groundAt(p.x));
+  const kts=F.V*KTS,stall=stallKts(p.mass,p.flaps);
+  $('#hSpd').textContent=Math.round(kts)+' kts';
+  $('#hSpdBar').style.width=clamp(kts/130*100,0,100)+'%';
+  $('#hSpdBar').style.background=F.warn?'#C4A35A':'';
+  $('#hStallMk').style.left=clamp(stall/130*100,0,99)+'%';
+  $('#hAlt').textContent=Math.round(agl*FT/10)*10+' ft';
+  $('#hVs').textContent='VS '+(p.vy>=0?'+':'\u2212')+Math.abs(Math.round(p.vy*196.85/10)*10)+' fpm';
+  $('#hCfg').textContent=(p.flaps?'Flaps down':'Flaps up')+' \u00b7 Throttle '+Math.round(p.thr*100)+'%'+(p.brakes&&p.onGround?' \u00b7 Brakes':'');
+  $('#hFuel').textContent=p.fuel.toFixed(0)+' L';
+  const fb=$('#hFuelBar');fb.style.width=(p.fuel/140*100)+'%';fb.style.background=p.fuel<12?'#A65D4E':'';
+  $('#hWt').textContent=Math.round(p.mass)+' kg';$('#hWtBar').style.width=(p.mass/PLANE.maxTakeoffMassKg*100)+'%';
+  if($('#wxi').dataset.wx!==F.wx.id){$('#wxi').innerHTML=WXICON[F.wx.id]+'<span>'+F.wx.label+'</span>';$('#wxi').dataset.wx=F.wx.id;}
+  const tm=$('#hTimer');
+  if(job.timeLimitSec){const left=job.timeLimitSec-F.t;tm.textContent='\u23f1 '+(left>=0?mmss(left):'late +'+mmss(-left));tm.style.color=left<30?'#C98475':left<60?'#C4A35A':'';}else tm.textContent='';
+  const dist=D.x0-p.x;
+  $('#hDest').textContent=D.name+' \u00b7 '+(dist>0?(dist>=1000?(dist/1000).toFixed(1)+' km':Math.round(dist)+' m'):'on the strip');
+  F.radioT-=1/30;const rd=$('#radio');rd.textContent=F.radioText?'\u201c'+F.radioText+'\u201d':'';rd.style.opacity=F.radioT>0?1:0.0;
+  $('#warn').style.display=F.warn&&!F.ended?'block':'none';
+  $('#warn').textContent=F.stalled?'Stall \u2014 lower the nose, add power':'Stall warning \u2014 speed low';
+  F.gradeT-=1/30;const gd=$('#grade');gd.style.display=F.gradeT>0?'block':'none';gd.textContent=F.gradeText;
+  // contextual hint
+  let hint='';const tc=touchCapable;
+  if(F.ended)hint='';
+  else if(!F.airborne&&p.onGround)hint=p.thr<0.9?(tc?'Slide the throttle (right) all the way up':'Hold W or Shift for full throttle'):(tc?'Around 50 kts, push the stick up to lift off \u2014 let go to hold the climb':'Around 50 kts, hold \u2191 to lift off \u2014 let go to hold the climb');
+  else if(!p.engine)hint='Out of fuel \u2014 hold best glide and aim for the strip';
+  else if(F.inCloud)hint=F.cloudT>=CLOUD_GRACE?'In cloud \u2014 bonus lost, descend below the gray':'In cloud \u2014 descend below the gray or lose the bonus';
+  else if(p.onGround&&F.touchdown)hint=tc?'Throttle to idle and hold Brake':'Throttle idle (S) and hold Space to brake';
+  else if(F.gatePassed&&F.xw>0&&Math.abs(p.off)>5)hint=`Drifting ${p.off>0?'right':'left'} \u2014 ${tc?'push the stick '+(p.off>0?'left':'right'):'hold '+(p.off>0?'\u2190':'\u2192')} to crab into the wind`;
+  else if(F.gatePassed&&!p.flaps)hint=tc?'Tap Flaps, then follow the dashed line':'Press F for flaps, then follow the dashed line';
+  else if(F.gatePassed&&agl<25)hint=tc?'Power to idle, ease the stick up to flare':'Power to idle, ease \u2191 to flare \u2014 aim under 450 fpm';
+  else if(F.gatePassed)hint='Ride the dashed line \u00b7 adjust power for height, nose for speed';
+  else if(agl<60&&p.x<1500)hint='Keep climbing \u2014 high ground ahead';
+  $('#hint').textContent=hint;$('#hint').style.display=hint?'block':'none';
+  const hcl=$('#hCloud'),cl=F.wx.ceiling&&(F.inCloud||F.cloudT>=CLOUD_GRACE);hcl.style.display=cl?'block':'none';
+  if(cl){const lost=F.cloudT>=CLOUD_GRACE;hcl.textContent=lost?'\u2601 Flew in cloud \u00b7 bonus lost':'\u2601 In cloud \u00b7 bonus at risk';hcl.style.color=lost?'#C98475':'';}
+  layoutHUD();
+  if(tc){$('#thrFill').style.height=`calc(${p.thr*100}% - 8px)`;$('#thrHandle').style.bottom=`calc(${p.thr*100}% * 0.85 + 12px)`;$('#tbFlaps').classList.toggle('on',p.flaps);$('#tbBrake').classList.toggle('on',p.brakes);}
+}
+// ---------------------------------------------------------------- loop
+let last=performance.now(),acc=0;const H=1/120;
+function frame(now){
+  const dt=Math.min(0.1,(now-last)/1000);last=now;
+  try{
+    if(S.mode==='flight'&&F&&!paused&&!BPA.manual){acc+=dt;let n=0;while(acc>=H&&n<24){stepFlight(H);acc-=H;n++;}if(n>=24)acc=0;}
+    if(F&&F.ended&&S.mode==='flight'&&F.endT>1.8)showDebrief();
+    render(dt);updateHUD();audioUpdate();
+  }catch(err){console.error(err);}
+  requestAnimationFrame(frame);
+}
+const BPA={manual:false,S,JOBS,WX,PHYS,ROUTES,getWorld,startFlight:(id,c,f)=>{S.job=JOBS.find(j=>j.id===id);S.cargo=c;S.fuel=f;beginFlight();return F;},
+  get F(){return F;},step:(dt,n)=>{for(let i=0;i<(n||1);i++){stepFlight(dt);if(F.ended&&F.endT>0)break;}return F;},showDebrief,goBoard,openPreflight,get SAVE(){return SAVE;},massOf,stallKts,climbFpm,layoutHUD,get insetRect(){const bh=128,bw=116,by=hudInsetBottom!=null?hudInsetBottom-bh:Hc-bh-40;return [Wc/2-bw/2,by,Wc/2+bw/2,by+bh];}};
+window.BPA=BPA;
+goBoard();
+requestAnimationFrame(frame);
+})();
+</script>
+</body></html>
